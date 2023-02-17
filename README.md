@@ -41,3 +41,21 @@ with
 * **M** => Mitbenutzernummer
 
 (If the `AAAAAAAAAAAATTTTTTTTTTT` part is 24 characters long, the `#` character before the MMMM part can be omitted.)
+
+## Default configuration of RB5009UG+S+IN
+
+The RB5009UG+S+IN (firmware: v7.6) comes with this [default configuration](scripts/default-configuration/script.rsc).
+
+The default configuration script can be queried with this command
+
+```RouterOS
+/system/default-configuration/script print
+```
+
+or to show all default configuration scripts:
+
+```RouterOS
+/system/default-configuration print
+```
+
+Reference: [Default configurations](https://help.mikrotik.com/docs/display/ROS/Default+configurations)
