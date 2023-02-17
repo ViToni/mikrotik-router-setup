@@ -148,3 +148,43 @@ For consistency all these commands should be executed at once:
   * [IP Addressing - Adding IP Address](https://help.mikrotik.com/docs/display/ROS/IP+Addressing#IPAddressing-AddingIPAddress)
   * [DHCP-Network](https://help.mikrotik.com/docs/display/ROS/DHCP#DHCP-Network)
   * [DNS Static](https://help.mikrotik.com/docs/display/ROS/DNS#DNS-DNSStatic)
+
+#### Create VLAN tagged interface for PPPoE
+
+Set up a VLAN interface for the PPPoE client.
+This is only required when the modem doesn't take care of tagging.
+
+```RouterOS
+/interface vlan
+  add interface=ether1 vlan-id=7 name=vlan07
+
+/interface list member
+  add list=WAN interface=vlan07
+```
+
+##### References
+
+* MikroTik
+  * [VLAN - Layer3 VLAN examples](https://help.mikrotik.com/docs/display/ROS/VLAN#VLAN-Layer3VLANexamples)
+
+#### Configure PPPoE client
+
+Depending on the modem configuration `interface` can be any of:
+
+* `vlan07` (modem has no VLAN tagging)
+* `ether1` (modem does VLAN tagging)
+* `sfp-sfpplus1` (SFP modem does VLAN tagging)
+
+```RouterOS
+/interface pppoe-client
+  add interface=vlan07 add-default-route=yes \
+    use-peer-dns=yes \
+    name=pppoe-out1 \
+    user="AAAAAAAAAAAATTTTTTTTTTT#MMMM@t-online.de" \
+    password="12345678"
+```
+
+##### References
+
+* MikroTik
+  * [First Time Configuration - PPPoE Connection](https://help.mikrotik.com/docs/display/ROS/First+Time+Configuration#FirstTimeConfiguration-PPPoEConnection)
