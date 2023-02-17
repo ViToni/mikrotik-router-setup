@@ -25,3 +25,19 @@ Internet connection: Telekom with BNG and MagentaTV
 * New router: [RB5009UG+S+IN](https://mikrotik.com/product/rb5009ug_s_in)
   * will reuse the existing modem until fiber gets installed
   * when fiber is available, the SFP port will carry the GPON SFP module
+
+## PPPoE credentials
+
+The regular Telekom-PPPoE user consists out of multiple parts derived from the contract data.
+
+The full PPPoE username would be:
+
+`AAAAAAAAAAAATTTTTTTTTTT#MMMM@t-online.de`
+
+with
+
+* **A** => Anschlusskennung
+* **T** => T-Online-Nummer
+* **M** => Mitbenutzernummer
+
+(If the `AAAAAAAAAAAATTTTTTTTTTT` part is 24 characters long, the `#` character before the MMMM part can be omitted.)
