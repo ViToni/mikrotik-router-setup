@@ -1,5 +1,7 @@
 # Setting up a MikroTik as default router
 
+Documentation for setting up MikroTik routers for use with Telekom / MagentaTV.
+
 ## Introduction
 
 There are many good routers for consumer households.
@@ -63,7 +65,7 @@ or to show all default configuration scripts:
 * MikroTik
   * [Default configurations](https://help.mikrotik.com/docs/display/ROS/Default+configurations)
 
-## Setting up the basic network
+## Setting up the basic network and connectivity
 
 ### Remove WAN interfaces from bridge
 
@@ -77,3 +79,30 @@ As it is not used for the internal network it can be already removed.
 /interface list member
   add list=WAN interface=sfp-sfpplus1
 ```
+
+### Setup using "Quick Set"
+
+"Quick Set" helps with the initial setup, especially when the network address shall be changed.
+
+|Setting                    |Value                      |Comment    |
+|---------------------------|---------------------------|-----------|
+|                           |                           |           |
+|**Mode**                   |[x] Router                 |           |
+|                           |                           |           |
+|**Port**                   |`eth1`                     |           |
+|**Address Acquisition**    |`PPPoE`                    |           |
+|**PPPoE User**             |`...@t-online.de`          |           |
+|**PPPoE Password**         |`12345678`                 |           |
+|**PPPoE Service Name**     |`Telekom`                  |(optional) |
+|                           |                           |           |
+|**IP Address**             |`10.0.0.1`                 |           |
+|**Netmask**                |`255.255.0.0/16`           |           |
+|**Bridge All LAN Ports**   | [ ]                       |           |
+|**DHCP Server**            | [x]                       |           |
+|**DHCP Server Range**      |`10.0.234.1-10.0.234.254`  |           |
+|**NAT**                    | [x]                       |           |
+
+#### References
+
+* MikroTik
+  * [Manual - Quickset](https://wiki.mikrotik.com/wiki/Manual:Quickset)
