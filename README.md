@@ -106,3 +106,45 @@ As it is not used for the internal network it can be already removed.
 
 * MikroTik
   * [Manual - Quickset](https://wiki.mikrotik.com/wiki/Manual:Quickset)
+
+### Manual setup
+
+#### Setup of DHCP and IP range
+
+The network is already set up with `192.168.88.1/24`. This snippet changes the respective addresses and ranges.
+
+For consistency all these commands should be executed at once:
+
+```RouterOS
+/ip pool
+  set [find name=default-dhcp] name=dhcp-LAN ranges=10.0.234.1-10.0.234.254
+
+/ip dhcp-server
+  set [find address-pool=default-dhcp] address-pool=default-LAN
+
+/ip address
+  set [find address=192.168.88.0/24] \
+    address=10.0.0.0/16 \
+    network=10.0.0.0 \
+    interface=bridge
+
+/ip dhcp-server network
+  set [find address=192.168.88.0/24] \
+    address=10.0.0.0/16 \
+    netmask=16 \
+    gateway=10.0.0.1 \
+    dns-server=10.0.0.1
+
+/ip dns static
+  set [find address=192.168.88.1] \
+    address=10.0.0.1 \
+    name=router
+```
+
+##### References
+
+* MikroTik
+  * [IP Pools](https://help.mikrotik.com/docs/display/ROS/IP+Pools)
+  * [IP Addressing - Adding IP Address](https://help.mikrotik.com/docs/display/ROS/IP+Addressing#IPAddressing-AddingIPAddress)
+  * [DHCP-Network](https://help.mikrotik.com/docs/display/ROS/DHCP#DHCP-Network)
+  * [DNS Static](https://help.mikrotik.com/docs/display/ROS/DNS#DNS-DNSStatic)
