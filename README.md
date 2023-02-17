@@ -62,3 +62,18 @@ or to show all default configuration scripts:
 
 * MikroTik
   * [Default configurations](https://help.mikrotik.com/docs/display/ROS/Default+configurations)
+
+## Setting up the basic network
+
+### Remove WAN interfaces from bridge
+
+The SFP interface might become the new WAN device when using fiber.
+As it is not used for the internal network it can be already removed.
+
+```RouterOS
+/interface bridge port
+  remove [find interface=sfp-sfpplus1]
+
+/interface list member
+  add list=WAN interface=sfp-sfpplus1
+```
