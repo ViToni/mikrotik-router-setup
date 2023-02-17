@@ -188,3 +188,55 @@ Depending on the modem configuration `interface` can be any of:
 
 * MikroTik
   * [First Time Configuration - PPPoE Connection](https://help.mikrotik.com/docs/display/ROS/First+Time+Configuration#FirstTimeConfiguration-PPPoEConnection)
+
+## Extended network configuration
+
+### Multicast / IPTV configuration
+
+#### Set up IGMP proxy
+
+```RouterOS
+/routing igmp-proxy interface
+  add interface=pppoe-out1 alternative-subnets=87.141.215.251/32 upstream=yes comment=MagentaTV
+  add interface=bridge comment=MagentaTV
+```
+
+##### References
+
+* MikroTik
+  * [IGMP Proxy - Examples](https://help.mikrotik.com/docs/display/ROS/IGMP+Proxy#IGMPProxy-Examples)
+
+#### Add IP range of multicast networks
+
+```RouterOS
+/ip firewall address-list
+  add address=224.0.0.0/4   list=Multicast comment=MagentaTV
+  add address=232.0.0.0/16  list=Multicast comment=MagentaTV
+  add address=239.35.0.0/16 list=Multicast comment=MagentaTV
+```
+
+#### Add firewall rules to allow traffic from multicast networks
+
+```RouterOS
+/ip firewall filter
+  add chain=input   action=accept dst-address-list=Multicast place-before=2 comment=MagentaTV
+  add chain=forward action=accept dst-address-list=Multicast place-before=2 comment=MagentaTV
+```
+
+#### Activate IGMP snooping on bridge
+
+```RouterOS
+/interface bridge
+  set [find where name=bridge and comment=defConf] \
+    igmp-snooping=yes igmp-version=3 multicast-router=permanent comment=MagentaTV
+```
+
+##### References
+
+* MikroTik
+  * [Basic IGMP snooping configuration](https://help.mikrotik.com/docs/pages/viewpage.action?pageId=59277403#BridgeIGMP/MLDsnooping-BasicIGMPsnoopingconfiguration)
+
+#### Sources
+
+* [Telekom Magenta TV/Entertain mit Mikrotik Router und VLANs](https://simon.taddiken.net/magenta-mikrotik/)
+* [Mikrotik - Telekom Magenta TV - IPTV - Tutorial](https://administrator.de/tutorial/mikrotik-telekom-magenta-tv-iptv-tutorial-667348.html)
