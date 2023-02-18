@@ -261,3 +261,11 @@ References:
 
 * MikroTik
   * [Setting static DNS record for each DHCP lease](https://wiki.mikrotik.com/wiki/Setting_static_DNS_record_for_each_DHCP_lease)
+
+### Using existing data from Fritz!Box
+
+Fritz!OS (tested with v7.29) provides an API to query data from the router.
+
+This data can be reused to configure the MikroTik router.
+
+The [Fritz2Tik](Fritz2Tik.md) documentation describes the details and steps needed to transform the data accordingly.
