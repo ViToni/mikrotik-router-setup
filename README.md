@@ -281,3 +281,52 @@ Fritz!OS (tested with v7.29) provides an API to query data from the router.
 This data can be reused to configure the MikroTik router.
 
 The [Fritz2Tik](Fritz2Tik.md) documentation describes the details and steps needed to transform the data accordingly.
+
+### Restricting time / bandwidth
+
+RouterOS supports setting up online time / bandwidth restrictions for clients.
+This functionality is called *Kid Control*.
+
+#### References
+
+* MikroTik
+  * [Kid Control](https://help.mikrotik.com/docs/display/ROS/Kid+Control)
+
+#### Creating profiles
+
+```RouterOS
+/ip kid-control
+  add name=Time \
+    mon=0s-1h,16h-1d \
+    tue=0s-1h,16h-1d \
+    wed=0s-1h,16h-1d \
+    thu=0s-1h,16h-1d \
+    fri=0s-1h,16h-1d \
+    sat=0s-1h,12h-1d \
+    sun=0s-1h,12h-1d
+  add name=Time-Bandwidth \
+    mon=0s-1h,16h-1d \
+    tue=0s-1h,16h-1d \
+    wed=0s-1h,16h-1d \
+    thu=0s-1h,16h-1d \
+    fri=0s-1h,16h-1d \
+    sat=0s-1h,12h-1d \
+    sun=0s-1h,12h-1d \
+    rate-limit=70M
+```
+
+Note:\
+For times up to midnight one has to use:
+ * on the CLI: `1d` or `24h`
+ * on web UI: `1d 00:00:00`
+
+For times starting at `00:00:00` one has to use `0s` on the CLI.\
+Even if the UI suggests it supports seconds (because they are shown), it does not.
+
+#### Assign devices to profiles
+
+```RouterOS
+/ip kid-control device
+  add mac-address=12:23:34:45:56:67 name=Android-5 user=Time
+  add mac-address=22:33:44:55:66:77 name=Notebook-1 user=Time-Bandwidth
+```
