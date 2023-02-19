@@ -240,3 +240,36 @@ Depending on the modem configuration `interface` can be any of:
 
 * [Telekom Magenta TV/Entertain mit Mikrotik Router und VLANs](https://simon.taddiken.net/magenta-mikrotik/)
 * [Mikrotik - Telekom Magenta TV - IPTV - Tutorial](https://administrator.de/tutorial/mikrotik-telekom-magenta-tv-iptv-tutorial-667348.html)
+
+### Extended DHCP configuration
+
+#### Add static DHCP leases
+
+```RouterOS
+/ip dhcp-server lease
+  add client-id=1:22:33:44:55:66:77 mac-address=22:33:44:55:66:77 address=10.0.25.2 comment="Notebook-1"
+  add client-id=1:12:23:34:45:56:67 mac-address=12:23:34:45:56:67 address=10.0.25.11 comment="Android-5"
+```
+
+Note:\
+The `client-id` is required, otherwise the router seems to not persist the entry.
+The `client-id` was calculated by using the prefix `1:` and the MAC of the device.
+
+##### References
+
+* MikroTik
+  * [DHCP-Server / Leases](https://wiki.mikrotik.com/wiki/Manual:IP/DHCP_Server#Leases)
+  * [DHCP / Leases](https://help.mikrotik.com/docs/display/ROS/DHCP#DHCP-Leases)
+
+#### Add static DNS record for known hosts
+
+```RouterOS
+/ip dns static
+  add name="Notebook-1" address=10.0.25.2
+  add name="Android-5" address=10.0.25.11
+```
+
+##### References
+
+* MikroTik
+  * [Setting static DNS record for each DHCP lease](https://wiki.mikrotik.com/wiki/Setting_static_DNS_record_for_each_DHCP_lease)
