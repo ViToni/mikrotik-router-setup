@@ -315,3 +315,29 @@ Even if the UI suggests it supports seconds (because they are shown), it does no
   add mac-address=12:23:34:45:56:67 name=Android-5 user=Time
   add mac-address=22:33:44:55:66:77 name=Notebook-1 user=Time-Bandwidth
 ```
+
+## Add access to modem
+
+The modem resides behind the router on `ether1` and has the address `192.168.1.1/24`.
+It's possible to access the modem with a few configuration adjustments.
+
+Assign `ether1` a dedicated IP in the network range of the modem to allow routing:
+
+```RouterOS
+/ip address
+  add address=192.168.1.2/24 interface=ether1 network=192.168.1.0
+```
+
+Add NAT rules to the firewall for the modem interface:
+
+```RouterOS
+/ip firewall nat
+  add action=masquerade chain=srcnat out-interface=ether1
+```
+
+Assign the modem a name (so that one does not have to remember its network/IP):
+
+```RouterOS
+/ip dns static
+  add address=192.168.1.1 name=modem.lan
+```
