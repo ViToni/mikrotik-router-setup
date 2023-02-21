@@ -341,3 +341,34 @@ Assign the modem a name (so that one does not have to remember its network/IP):
 /ip dns static
   add address=192.168.1.1 name=modem.lan
 ```
+
+## Activate Internet detection
+
+Applying this setting will make RouterOS try to detect the "Internet".
+
+It's activated mostly to allow the mobile app to show some nice graphs about bandwidth usage...
+
+As this feature might mix up interface lists (and by that firewall settings), it is safeer to create interface lists solely for the purpose of internet detection.
+
+```RouterOS
+/interface list
+  add name=di-where-detect
+  add name=di-detected-lan
+  add name=di-detected-wan
+  add name=di-detected-internet
+
+/interface detect-internet
+  set detect-interface-list=di-where-detect \
+    lan-interface-list=di-detected-lan \
+    wan-interface-list=di-detected-wan \
+    internet-interface-list=di-detected-internet
+
+/interface list member
+  add interface=pppoe-telekom list=di-where-detect
+```
+
+References:
+
+* Mikrotik
+  * [Detect Internet](https://help.mikrotik.com/docs/display/ROS/Detect+Internet)
+  * [What is Detect Internet for?](https://forum.mikrotik.com/viewtopic.php?t=187814#p946990)
