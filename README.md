@@ -390,15 +390,17 @@ As this feature might mix up interface lists (and by that firewall settings), it
   * [Detect Internet](https://help.mikrotik.com/docs/display/ROS/Detect+Internet)
   * [What is Detect Internet for?](https://forum.mikrotik.com/viewtopic.php?t=187814#p946990)
 
-## Create & add SSL certificate for `web-ssl`
+## Services
+
+### Create & add SSL certificate for `web-ssl`
 
 To start `web-ssl` one needs to create a certificate which can't be done solely on the MikroTik itself.
 
-### Sources
+#### Sources
 
 * [Create a Self-Signed Certificate on MikroTik](https://cyberjunky.nl/create-self-sign-cert-for-mikrotik/)
 
-### Step 1 - Create certificate request - MikroTik
+#### Step 1 - Create certificate request - MikroTik
 
 ```RouterOS
 /certificate
@@ -406,7 +408,7 @@ To start `web-ssl` one needs to create a certificate which can't be done solely 
   create-certificate-request template=SSL key-passphrase=<passphrase of your choice>
 ```
 
-### Step 2 - Create self-signed certificate - System with OpenSSL installed
+#### Step 2 - Create self-signed certificate - System with OpenSSL installed
 
 Copy the files to a system with `OpenSSL`.
 
@@ -417,7 +419,7 @@ openssl x509 -req -days 9999 -in certificate-request.pem -signkey certificate-re
 
 Upload the created files to the MikroTik.
 
-### Step 3 - Configure certificate - MikroTik
+#### Step 3 - Configure certificate - MikroTik
 
 Configure the imported file as certificate.
 
@@ -436,7 +438,7 @@ passphrase: ******
   keys-with-no-certificate: 0
 ```
 
-### Step 4 - Configure key - MikroTik
+#### Step 4 - Configure key - MikroTik
 
 Configure the imported key file.
 
@@ -455,7 +457,7 @@ passphrase: *****
   keys-with-no-certificate: 0
 ```
 
-### Step 5 - Validate certificate - MikroTik
+#### Step 5 - Validate certificate - MikroTik
 
 ```RouterOS
 /certificate print
@@ -471,7 +473,7 @@ Columns: NAME, COMMON-NAME, FINGERPRINT
 1 KT mikrotik_ssl.crt_0  SSL          efg...
 ```
 
-### Step 6 - Configure and enable `web-ssl` - MikroTik
+#### Step 6 - Configure and enable `web-ssl` - MikroTik
 
 Configure `web-ssl` to use the certificate and enable the service:
 
@@ -480,7 +482,19 @@ Configure `web-ssl` to use the certificate and enable the service:
   set [find name=www-ssl] certificate=mikrotik_ssl.crt_0 disabled=no
 ```
 
-### References
+#### References
 
 * MikroTik
   * [Certificates](https://help.mikrotik.com/docs/display/ROS/Certificates)
+
+### Disable unused services
+
+Keep `ssh`, `www` and `www-ssl` but disable service not used.
+
+```RouterOS
+/ip service
+  set api     disabled=yes
+  set api-ssl disabled=yes
+  set ftp     disabled=yes
+  set telnet  disabled=yes
+```
