@@ -25,6 +25,10 @@ Internet connection: Telekom with BNG and MagentaTV
 * New router: [RB5009UG+S+IN](https://mikrotik.com/product/rb5009ug_s_in)
   * will reuse the existing modem until fibre gets installed
   * when fiber is available, the SFP port will carry the GPON SFP module
+    * Telekom sells the [Digitalisierungsbox Glasfasermodem](https://geschaeftskunden.telekom.de/internet-dsl/produkt/digitalisierungsbox-glasfasermodem-kaufen) which is a [Zyxel PMG3000-D20B](https://hack-gpon.github.io/ont-zyxel-pmg3000-d20b/).
+    This modem has a SC/APC socket, the wall box has has LC/APC socket. \
+    (Some tutorials say one needs a `ONT-Anschlusskennung`, for me using the [modem ID](https://www.telekom.de/hilfe/festnetz-internet-tv/anschluss-verfuegbarkeit/anschlussvarianten/glasfaseranschluss/modem-id) during configuration was just fine. ONT might be required for business accounts though.)
+    * Corning has [fiber cables in various lengths](https://www.amazon.de/dp/B09GRK3QG6) for a moderate price (but they have only 2 mm white cables, the 3 mm ones are yellow).
 
 ## PPPoE credentials
 
@@ -145,6 +149,11 @@ References:
 
 Setup a VLAN interface for the PPPoE client.
 This is only required when the modem doesn't take care of tagging.
+
+Depending on the modem, `interface` can be any of:
+
+* `ether1` (extenal modem without VLAN tagging)
+* `sfp-sfpplus1` (SFP modem without VLAN tagging)
 
 ```RouterOS
 /interface vlan
@@ -318,8 +327,12 @@ Even if the UI suggests it supports seconds (because they are shown), it does no
 
 ## Add access to modem
 
-The modem resides behind the router on `ether1` and has the address `192.168.1.1/24`.
+The modem resides behind the router and has its own address / network.
 It's possible to access the modem with a few configuration adjustments.
+
+### External modem
+
+The modem is reachable via `ether1` and has the address `192.168.1.1/24`.
 
 Assign `ether1` a dedicated IP in the network range of the modem to allow routing:
 
@@ -340,6 +353,31 @@ Assign the modem a name (so that one does not have to remember its network/IP):
 ```RouterOS
 /ip dns static
   add address=192.168.1.1 name=modem.lan
+```
+
+### Internal SFP modem
+
+The modem is reachable via `sfp-sfpplus1` and has the address `10.10.1.1/24`.
+
+Assign `sfp-sfpplus1` a dedicated IP in the network range of the modem to allow routing:
+
+```RouterOS
+/ip address
+  add address=10.10.1.2/24 interface=sfp-sfpplus1 network=10.10.1.0
+```
+
+Add NAT rules to the firewall for the modem interface:
+
+```RouterOS
+/ip firewall nat
+  add action=masquerade chain=srcnat out-interface=sfp-sfpplus1
+```
+
+Assign the modem a name (so that one does not have to remember its network/IP):
+
+```RouterOS
+/ip dns static
+  add address=sfp-sfpplus1 name=fiber-modem.lan
 ```
 
 ## Activate Internet detection
