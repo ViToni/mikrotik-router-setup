@@ -539,3 +539,55 @@ Keep `ssh`, `www` and `www-ssl` but disable service not used.
   set ftp     disabled=yes
   set telnet  disabled=yes
 ```
+
+## DNS Caveats
+
+When switching from VDSL to fiber it might seem that the connection does not work properly.
+The reason could be actually local DNS caching, here `www.heise.de` is resolved to `ip.block.dt.de`:
+
+```sh
+$ ping www.heise.de
+PING ip.block.dt.de (46.29.100.42): 56 data bytes
+64 bytes from 46.29.100.42: icmp_seq=0 ttl=52 time=29.764 ms
+64 bytes from 46.29.100.42: icmp_seq=1 ttl=52 time=29.047 ms
+64 bytes from 46.29.100.42: icmp_seq=2 ttl=52 time=29.401 ms
+...
+```
+
+One can either reboot or flush the DNS cache:
+
+### Flushing MikroTik DNS cache
+
+```RouterOS
+/ip dns cache flush
+```
+
+#### References
+
+* MikroTik
+  * [DNS Cache](https://help.mikrotik.com/docs/display/ROS/DNS#DNS-DNSCache)
+
+### Flushing Linux DNS cache
+
+```bash
+sudo systemd-resolve --flush-caches
+sudo resolvectl flush-caches
+```
+
+or when DNS resolution is using `dnsmasq`
+
+```bash
+sudo killall -HUP dnsmasq
+```
+
+### Flushing MacOS DNS cache
+
+```zsh
+sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
+```
+
+### Flushing Windows DNS cache
+
+```batch
+ipconfig /flushdns
+```
