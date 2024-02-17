@@ -32,6 +32,16 @@ Internet connection: Telekom with BNG and MagentaTV
     (Some tutorials say one needs a `ONT-Anschlusskennung`, for me using the [modem ID](https://www.telekom.de/hilfe/festnetz-internet-tv/anschluss-verfuegbarkeit/anschlussvarianten/glasfaseranschluss/modem-id) during configuration was just fine. ONT might be required for business accounts though.)
     * Corning has [fiber cables in various lengths](https://www.amazon.de/dp/B09GRK3QG6) for a moderate price (but they have only 2 mm white cables, the 3 mm ones are yellow).
 
+**UPDATE**: Usage of the SFP proved to be flaky, issues seem to caused by the MikroTik side:
+
+* erroneous temperature readings of the SFP by MikroTik leading to the SFP being shut down
+* auto-negotiation not working (worked around by setting the `sfp-sfpplus1` interface to `auto-negotiation=no speed=1Gbps`)
+* finally the [RB5009UG+S+IN](https://mikrotik.com/product/rb5009ug_s_in) not recognizing the SFP after about 9 months (a [hEX S](https://mikrotik.com/product/hex_s) had no issues with the SFP module and the fiber connection seemed to continue to work...)
+
+The SFP has been replaced by the [Glasfaser Modem 2](https://www.telekom.de/zuhause/geraete-und-zubehoer/wlan-und-router/glasfaser-modem-2) which seems to be more of a media converter than an actual modem.
+Works fine for now but now the setup is back to 2 devices.
+As the included fibre cable is quite short, it got replaced by [a longer fiber cable from InLine](https://www.amazon.de/dp/B08XMN6JPL).
+
 ## PPPoE credentials
 
 The regular Telekom-PPPoE user consists out of multiple parts derived from the contract data.
@@ -364,15 +374,19 @@ It's possible to access the modem with a few configuration adjustments.
 
 #### External modem
 
-The modem is reachable via `ether1` and has the address `192.168.1.1/24`.
+The modem (either VDSL or fiber) is attached to `ether1`.
 
 Add NAT rule to the firewall for the modem interface:
 
 ```RouterOS
 /ip firewall nat
   add action=masquerade chain=srcnat out-interface=ether1 \
-    comment="Zyxel VMG1312-B30A"
+    comment="Modem ether1"
 ```
+
+##### Configuration for Zyxel VMG1312-B30A
+
+The modem has the address `192.168.1.1/24`.
 
 Assign `ether1` a dedicated IP in the network range of the modem to allow routing:
 
@@ -389,17 +403,40 @@ Assign the modem a name (so that one does not have to remember its network/IP):
   add address=192.168.1.1 name=modem comment="Zyxel VMG1312-B30A"
 ```
 
+##### Configuration for Glasfaser Modem 2
+
+The modem has the address `192.168.100.1/24`.
+
+Assign `ether1` a dedicated IP in the network range of the modem to allow routing:
+
+```RouterOS
+/ip address
+  add address=192.168.100.2/24 interface=ether1 network=192.168.100.0 \
+    comment="Glasfaser Modem 2"
+```
+
+Assign the modem a name (so that one does not have to remember its network/IP):
+
+```RouterOS
+/ip dns static
+  add address=192.168.100.1 name=gmodem2 comment="Glasfaser Modem 2"
+```
+
 #### Internal SFP modem
 
-The modem is reachable via `sfp-sfpplus1` and has the address `10.10.1.1/24`.
+The modem is attached to `sfp-sfpplus1`.
 
 Add NAT rule to the firewall for the modem interface:
 
 ```RouterOS
 /ip firewall nat
   add action=masquerade chain=srcnat out-interface=sfp-sfpplus1 \
-    comment="Digitalisierungsbox Glasfasermodem"
+    comment="Modem SFP+"
 ```
+
+##### Configuration for Digitalisierungsbox Glasfasermodem
+
+The modem has the address `10.10.1.1/24`.
 
 Assign `sfp-sfpplus1` a dedicated IP in the network range of the modem to allow routing:
 
