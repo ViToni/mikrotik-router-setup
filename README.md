@@ -237,7 +237,7 @@ Depending on the modem configuration `interface` can be any of:
 ```RouterOS
 /interface bridge
   set [find where name=bridge and comment=defConf] \
-    igmp-snooping=yes igmp-version=3 multicast-router=permanent comment=MagentaTV
+    igmp-snooping=yes igmp-version=3 mld-version=2 multicast-router=permanent comment=MagentaTV
 ```
 
 ##### References
