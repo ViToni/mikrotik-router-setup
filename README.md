@@ -79,9 +79,6 @@ As it is not used for the internal network it can be already removed.
 ```RouterOS
 /interface bridge port
   remove [find interface=sfp-sfpplus1]
-
-/interface list member
-  add list=WAN interface=sfp-sfpplus1
 ```
 
 ### Setup using "Quick Set"
@@ -165,10 +162,7 @@ Depending on the modem, `interface` can be any of:
 
 ```RouterOS
 /interface vlan
-  add interface=ether1 vlan-id=7 name=vlan07
-
-/interface list member
-  add list=WAN interface=vlan07
+  add interface=ether1 vlan-id=7 name=vlan07-telekom comment=Telekom
 ```
 
 ##### References
@@ -184,19 +178,42 @@ Depending on the modem configuration `interface` can be any of:
 * `ether1` (modem does VLAN tagging)
 * `sfp-sfpplus1` (SFP modem does VLAN tagging)
 
+As default the PPPoE client is disabled to prevent it from starting before configuration is complete.
+
 ```RouterOS
 /interface pppoe-client
-  add interface=vlan07 add-default-route=yes \
+  add interface=vlan07-telekom add-default-route=yes \
     use-peer-dns=yes \
     name=pppoe-out1 \
     user="AAAAAAAAAAAATTTTTTTTTTT#MMMM@t-online.de" \
-    password="12345678"
+    password="12345678" \
+    disabled=yes \
+    comment=Telekom
 ```
 
 ##### References
 
 * MikroTik
   * [First Time Configuration - PPPoE Connection](https://help.mikrotik.com/docs/display/ROS/First+Time+Configuration#FirstTimeConfiguration-PPPoEConnection)
+
+#### Add PPPoE interface to WAN interface list for firewall
+
+In addition to specific interfaces the firewall configuration can use more generic interface lists.
+The PPPoE client's interface must be added to the `WAN` interface list to make it work.
+
+```RouterOS
+/interface list member
+  add list=WAN interface=pppoe-out1 comment=Telekom
+```
+
+#### Activate PPPoE client
+
+Now that Internet settings are all configured the PPPoE can be activated.
+
+```RouterOS
+/interface pppoe-client
+  set [find name=pppoe-out1] disabled=no
+```
 
 ## Extended network configuration
 
