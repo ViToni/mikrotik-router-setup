@@ -367,6 +367,42 @@ Even if the UI suggests it supports seconds (because they are shown), it does no
   add mac-address=22:33:44:55:66:77 name=Notebook-1 user=Time-Bandwidth
 ```
 
+### Configuration of custom DNS server
+
+For various reasons one might want to use custom server for DNS resolution instead the ones provided by the ISP. Reasons could be eg.:
+
+* content filtering (malicious sites, spam domains, etc.)
+* speed
+* some domain names not resolving properly
+* cached and outdated ones being resolved
+* and more...
+
+A non-exhaustive list of some better known public DNS provider:
+
+* [Cloudflare DNS](https://1.1.1.1/)
+* [Google DNS](https://developers.google.com/speed/public-dns/)
+* [Quad9](https://quad9.net/)
+
+Example for setup using non-filtering Cloudflare DNS server:
+
+```RouterOS
+/ip dns
+  set allow-remote-requests=yes servers=1.1.1.1,1.0.0.1
+```
+
+Configure the PPPoE client to ignore the DNS servers provided by the ISP:
+
+```RouterOS
+/interface pppoe-client
+  set [find name=pppoe-telekom] use-peer-dns=no
+```
+
+#### References
+
+* MikroTik
+  * [DNS Configuration](https://help.mikrotik.com/docs/display/ROS/DNS#DNS-DNSconfiguration)
+  * [PPPoE Client Properties](https://help.mikrotik.com/docs/display/ROS/PPPoE#PPPoE-Properties)
+
 ### Add access to modem
 
 The modem resides behind the router and has its own address / network.
