@@ -305,6 +305,14 @@ The `client-id` was calculated by using the prefix `1:` and the MAC of the devic
   add name="Android-5" address=10.0.25.11
 ```
 
+Or with the `lan` domain configured:
+
+```RouterOS
+/ip dns static
+  add name="Notebook-1.lan" address=10.0.25.2
+  add name="Android-5.lan" address=10.0.25.11
+```
+
 ##### References
 
 * MikroTik
@@ -317,6 +325,53 @@ Fritz!OS (tested with v7.29) provides an API to query data from the router.
 This data can be reused to configure the MikroTik router.
 
 The [Fritz2Tik](Fritz2Tik.md) documentation describes the details and steps needed to transform the data accordingly.
+
+#### Add default search domain (list)
+
+DHCP option `119` can be used to provide a default search domain (list) to clients.
+
+The domain names used are based on DNS labels ([RFC 1035 - 4.1.4](https://www.ietf.org/rfc/rfc1035.html#section-4.1.4)) which is not very convenient if one has to derive them on its own...
+But there is a nice online tool helping with that: [DHCP Option 119 Encoder](https://jjjordan.github.io/dhcp119/)
+
+Search domain of: `lan`
+
+```RouterOS
+/ip dhcp-server option
+  add code=119 name=domain-search-list value="0x03'lan'0x00"
+```
+
+or e.g. search domain list of: `lan;foo` (don't use `box` as it's a [potential TLD since 2016-11-11](https://newgtlds.icann.org/en/program-status/delegated-strings)):
+
+```RouterOS
+/ip dhcp-server option
+  add code=119 name=domain-search-list value="0x03'lan'0x0003'foo'0x00"
+```
+
+Use the domain search option as part of an option set:
+
+```RouterOS
+/ip dhcp-server option sets
+  add name=domain-search-set options=domain-search-list
+```
+
+Configure the DHCP server to use the given option set:
+
+```RouterOS
+/ip dhcp-server
+  set [find name=dhcp-LAN] dhcp-option-set=domain-search-set
+```
+
+##### References
+
+* MikroTik
+  * [DHCP Server - Options](https://wiki.mikrotik.com/wiki/Manual:IP/DHCP_Server#DHCP_Options)
+  * [DHCP Server - Option Sets](https://wiki.mikrotik.com/wiki/Manual:IP/DHCP_Server#DHCP_Option_Sets)
+* IANA
+  * [DHCP Parameters](http://www.iana.org/assignments/bootp-dhcp-parameters/bootp-dhcp-parameters.xhtml)
+  * [Delegated Strings \| ICANN New gTLDs](https://newgtlds.icann.org/en/program-status/delegated-strings)
+  * [Delegation Record for .BOX](https://www.iana.org/domains/root/db/box.html)
+* Helper
+  * [DHCP Option 119 Encoder](https://jjjordan.github.io/dhcp119/)
 
 ### Restricting time / bandwidth
 
@@ -452,7 +507,7 @@ Assign the modem a name (so that one does not have to remember its network/IP):
 
 ```RouterOS
 /ip dns static
-  add address=192.168.1.1 name=modem comment="Zyxel VMG1312-B30A"
+  add address=192.168.1.1 name=modem.lan comment="Zyxel VMG1312-B30A"
 ```
 
 ##### Configuration for Glasfaser Modem 2
@@ -471,7 +526,7 @@ Assign the modem a name (so that one does not have to remember its network/IP):
 
 ```RouterOS
 /ip dns static
-  add address=192.168.100.1 name=gmodem2 comment="Glasfaser Modem 2"
+  add address=192.168.100.1 name=gmodem2.lan comment="Glasfaser Modem 2"
 ```
 
 #### Internal SFP modem
@@ -502,7 +557,7 @@ Assign the modem a name (so that one does not have to remember its network/IP):
 
 ```RouterOS
 /ip dns static
-  add address=sfp-sfpplus1 name=fiber-modem \
+  add address=sfp-sfpplus1 name=fiber-modem.lan \
     comment="Digitalisierungsbox Glasfasermodem"
 ```
 
