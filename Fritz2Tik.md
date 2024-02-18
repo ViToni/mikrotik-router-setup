@@ -233,3 +233,20 @@ Output:
   add name="Notebook-1" address=10.0.25.2
   add name="Android-5" address=10.0.25.11
 ```
+
+The script also allows usage of a domain which will be used as part of the hostnames:
+
+```sh
+scripts/fritz2tik.sh data/landevices.json lan
+```
+
+Output:
+
+```RouterOS
+/ip dhcp-server lease
+  add client-id=1:22:33:44:55:66:77 mac-address=22:33:44:55:66:77 address=10.0.25.2 comment="Notebook-1"
+  add client-id=1:12:23:34:45:56:67 mac-address=12:23:34:45:56:67 address=10.0.25.11 comment="Android-5"
+/ip dns static
+  add name="Notebook-1.lan" address=10.0.25.2
+  add name="Android-5.lan" address=10.0.25.11
+```
