@@ -537,6 +537,34 @@ As this feature might mix up interface lists (and by that firewall settings), it
   * [Detect Internet](https://help.mikrotik.com/docs/display/ROS/Detect+Internet)
   * [What is Detect Internet for?](https://forum.mikrotik.com/viewtopic.php?t=187814#p946990)
 
+## Configure NTP client
+
+```RouterOS
+/system ntp client
+  set enabled=yes
+/system ntp client servers
+  add address=europe.pool.ntp.org
+```
+
+### References
+
+* MikroTik
+  * [RouterOS version 7 NTP Client properties](https://help.mikrotik.com/docs/display/ROS/NTP#NTP-NTPClientproperties:)
+
+## Configure timezone (optional)
+
+Per default auto-detection of the time zone is enabled. One can still specify the timezone manually.
+
+```RouterOS
+/system clock
+  set time-zone-name=Europe/Berlin
+```
+
+### References
+
+* MikroTik
+  * [Clock](https://help.mikrotik.com/docs/display/ROS/Clock)
+
 ## Services
 
 ### Create & add SSL certificate for `web-ssl`
