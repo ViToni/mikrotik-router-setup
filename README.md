@@ -397,11 +397,27 @@ Configure the PPPoE client to ignore the DNS servers provided by the ISP:
   set [find name=pppoe-telekom] use-peer-dns=no
 ```
 
+#### Redirect all DNS requests to router
+
+One can even prevent users to use their own DNS settings and force them to use the router for look ups by redirecting all request to the router:
+
+```RouterOS
+/ip firewall nat
+  print
+  add action=dst-nat chain=dstnat in-interface-list="LAN" \
+    src-address=!10.0.0.1 dst-port=53 to-addresses=10.0.0.1 \
+    protocol=udp comment="DNS redirect (UDP)"
+  add action=dst-nat chain=dstnat in-interface-list="LAN" \
+    src-address=!10.0.0.1 to-addresses=10.0.0.1 dst-port=53 \
+    protocol=tcp comment="DNS redirect (TCP)"
+```
+
 #### References
 
 * MikroTik
   * [DNS Configuration](https://help.mikrotik.com/docs/display/ROS/DNS#DNS-DNSconfiguration)
   * [PPPoE Client Properties](https://help.mikrotik.com/docs/display/ROS/PPPoE#PPPoE-Properties)
+  * [IP/Firewall/NAT](https://wiki.mikrotik.com/wiki/Manual:IP/Firewall/NAT)
 
 ### Add access to modem
 
