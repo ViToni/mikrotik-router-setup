@@ -141,8 +141,7 @@ DHCP leases can be configured such as
 cat data/landevices.json | jq -c '.network|=sort_by(.ip) | .network[] | del(._node)'
 ----
 
-Output:
-
+.Output:
 [,JSON]
 ----
 {"online":"0","name":"Entertain","active":"1","dhcp":"0","mac":"30:D3:EE:EE:EE:EE","static_dhcp":"0","ip":""}
@@ -158,8 +157,7 @@ Output:
 cat data/landevices.json | jq  -c '.network|=sort_by(.ip | split(".") | map(tonumber)) | .network[] | del(._node)'
 ----
 
-Output:
-
+.Output:
 [,JSON]
 ----
 {"online":"0","name":"Entertain","active":"1","dhcp":"0","mac":"30:D3:EE:EE:EE:EE","static_dhcp":"0","ip":""}
@@ -182,8 +180,7 @@ Entries need to have a MAC, an IP address and need to have been used for static 
 cat data/landevices.json | jq -c '.network[] | select(.static_dhcp == "1") | select(.mac != "") | select(.ip != "") | del(._node)'
 ----
 
-Output:
-
+.Output:
 [,JSON]
 ----
 {"online":"0","name":"Android-5","active":"0","dhcp":"1","mac":"12:23:34:45:56:67","static_dhcp":"1","ip":"10.0.25.11"}
@@ -214,8 +211,7 @@ cat data/landevices.json | jq -r '.network[] | @sh "add client-id=1:\(.mac) mac-
 
 `-r` is short for `--raw-output`
 
-Output:
-
+.Output:
 [,RouterOS]
 ----
 add client-id=1:'01:23:45:67:89:AB' mac-address='01:23:45:67:89:AB' address='10.0.234.1' comment="'Android-3'"
@@ -231,8 +227,7 @@ add client-id=1:'30:D3:EE:EE:EE:EE' mac-address='30:D3:EE:EE:EE:EE' address='' c
 cat data/landevices.json | jq -r '.network|=sort_by(.ip | split(".") | map(tonumber) ) | .network[] | select(.static_dhcp == "1") | select(.mac != "") | select(.ip != "")  | @text "  add client-id=1:\(.mac) mac-address=\(.mac) address=\(.ip) comment=\"\(.name)\""' | (echo "/ip dhcp-server lease"; cat)
 ----
 
-Output:
-
+.Output:
 [,RouterOS]
 ----
 /ip dhcp-server lease
@@ -247,8 +242,7 @@ Output:
 cat data/landevices.json | jq -r '.network|=sort_by(.ip | split(".") | map(tonumber) ) | .network[] | select(.static_dhcp == "1") | select(.name != "") | select(.ip != "") | @text "  add name=\"\(.name)\" address=\(.ip)"' | (echo "/ip dns static"; cat)
 ----
 
-Output:
-
+.Output:
 [,RouterOS]
 ----
 /ip dns static
@@ -271,8 +265,7 @@ The link:scripts/fritz/fritz2tik.sh[shell script] combines both functions and ta
 scripts/fritz2tik.sh data/landevices.json
 ----
 
-Output:
-
+.Output:
 [,RouterOS]
 ----
 /ip dhcp-server lease
@@ -290,8 +283,7 @@ The script also allows usage of a domain which will be used as part of the hostn
 scripts/fritz2tik.sh data/landevices.json lan
 ----
 
-Output:
-
+.Output:
 [,RouterOS]
 ----
 /ip dhcp-server lease
