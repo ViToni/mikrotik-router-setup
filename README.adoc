@@ -1,4 +1,15 @@
 = Setting up a MikroTik as default router
+Victor Toni <https://github.com/vitoni>
+// Settings:
+:toc: preamble
+:!toc-title:
+:toclevels: 5
+ifndef::env-github[:icons: font]
+ifdef::env-github[]
+:status:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+endif::[]
 
 Documentation for setting up MikroTik routers for use with Telekom / MagentaTV.
 
@@ -75,6 +86,7 @@ or to show all default configuration scripts:
 /system/default-configuration print
 ----
 
+[discrete]
 === References
 
 * MikroTik
@@ -161,6 +173,7 @@ As it is not used for the internal network it can be already removed.
 |
 |===
 
+[discrete]
 ==== References
 
 * MikroTik
@@ -201,6 +214,7 @@ For consistency all these commands should be executed at once:
     name=router
 ----
 
+[discrete]
 ===== References
 
 * MikroTik
@@ -225,6 +239,7 @@ Depending on the modem, `interface` can be any of:
   add interface=ether1 vlan-id=7 name=vlan07-telekom comment=Telekom
 ----
 
+[discrete]
 ===== References
 
 * MikroTik
@@ -252,6 +267,7 @@ As default the PPPoE client is disabled to prevent it from starting before confi
     comment=Telekom
 ----
 
+[discrete]
 ===== References
 
 * MikroTik
@@ -291,6 +307,7 @@ Now that Internet settings are all configured the PPPoE can be activated.
   add interface=bridge comment=MagentaTV
 ----
 
+[discrete]
 ===== References
 
 * MikroTik
@@ -324,11 +341,13 @@ Now that Internet settings are all configured the PPPoE can be activated.
     igmp-snooping=yes igmp-version=3 mld-version=2 multicast-router=permanent comment=MagentaTV
 ----
 
+[discrete]
 ===== References
 
 * MikroTik
  ** https://help.mikrotik.com/docs/pages/viewpage.action?pageId=59277403#BridgeIGMP/MLDsnooping-BasicIGMPsnoopingconfiguration[Basic IGMP snooping configuration]
 
+[discrete]
 ==== Sources
 
 * https://simon.taddiken.net/magenta-mikrotik/[Telekom Magenta TV/Entertain mit Mikrotik Router und VLANs]
@@ -349,6 +368,7 @@ Note: +
 The `client-id` is required, otherwise the router seems to not persist the entry.
 The `client-id` was calculated by using the prefix `1:` and the MAC of the device.
 
+[discrete]
 ===== References
 
 * MikroTik
@@ -373,6 +393,7 @@ Or with the `lan` domain configured:
   add name="Android-5.lan" address=10.0.25.11
 ----
 
+[discrete]
 ===== References
 
 * MikroTik
@@ -425,6 +446,7 @@ Configure the DHCP server to use the given option set:
   set [find name=dhcp-LAN] dhcp-option-set=domain-search-set
 ----
 
+[discrete]
 ===== References
 
 * MikroTik
@@ -442,6 +464,7 @@ Configure the DHCP server to use the given option set:
 RouterOS supports setting up online time / bandwidth restrictions for clients.
 This functionality is called _Kid Control_.
 
+[discrete]
 ==== References
 
 * MikroTik
@@ -537,6 +560,7 @@ One can even prevent users to use their own DNS settings and force them to use t
     protocol=tcp comment="DNS redirect (TCP)"
 ----
 
+[discrete]
 ==== References
 
 * MikroTik
@@ -665,6 +689,7 @@ As this feature might mix up interface lists (and by that firewall settings), it
   add interface=pppoe-out1 list=di-where-detect
 ----
 
+[discrete]
 === References
 
 * MikroTik
@@ -681,6 +706,7 @@ As this feature might mix up interface lists (and by that firewall settings), it
   add address=europe.pool.ntp.org
 ----
 
+[discrete]
 === References
 
 * MikroTik
@@ -696,6 +722,7 @@ Per default auto-detection of the time zone is enabled. One can still specify th
   set time-zone-name=Europe/Berlin
 ----
 
+[discrete]
 === References
 
 * MikroTik
@@ -707,6 +734,7 @@ Per default auto-detection of the time zone is enabled. One can still specify th
 
 To start `web-ssl` one needs to create a certificate which can't be done solely on the MikroTik itself.
 
+[discrete]
 ==== Sources
 
 * https://cyberjunky.nl/create-self-sign-cert-for-mikrotik/[Create a Self-Signed Certificate on MikroTik]
@@ -802,6 +830,7 @@ Configure `web-ssl` to use the certificate and enable the service:
   set [find name=www-ssl] certificate=mikrotik_ssl.crt_0 disabled=no
 ----
 
+[discrete]
 ==== References
 
 * MikroTik
@@ -844,6 +873,7 @@ One can either reboot or flush the DNS cache:
 /ip dns cache flush
 ----
 
+[discrete]
 ==== References
 
 * MikroTik
