@@ -1,48 +1,47 @@
-# Setting up a MikroTik as default router
+= Setting up a MikroTik as default router
 
 Documentation for setting up MikroTik routers for use with Telekom / MagentaTV.
 
-## Introduction
+== Introduction
 
 There are many good routers for consumer households.
-The decision to use a [MikroTik](https://mikrotik.com) router, which you would be more likely to find in a network lab, was based on previous exposure and the intention to reduce the total number of devices.
-It could have been custom hardware with [PFsense](https://www.pfsense.org/) or [OPNsense](https://opnsense.org/) on top, but since the network will also have WiFi meshing in the future, the MikroTik router can act directly as a coordinator (for MikroTik APs) without the need for another device, and the solution is hopefully also more power-efficient than a dedicated mini-PC.
+The decision to use a https://mikrotik.com[MikroTik] router, which you would be more likely to find in a network lab, was based on previous exposure and the intention to reduce the total number of devices.
+It could have been custom hardware with https://www.pfsense.org/[PFsense] or https://opnsense.org/[OPNsense] on top, but since the network will also have WiFi meshing in the future, the MikroTik router can act directly as a coordinator (for MikroTik APs) without the need for another device, and the solution is hopefully also more power-efficient than a dedicated mini-PC.
 
 Custom routing solutions like MikroTik routers can be configured down to the smallest detail, but it is easy to get lost in these details, especially if the configuration is not done on a daily basis.
 
 This documentation is mainly intended to serve me as a reference for the configuration steps carried out (and why they were necessary / useful), but perhaps it could be helpful for others as well.
 
-## Prerequisites
+== Prerequisites
 
 Internet connection: Telekom with BNG and MagentaTV
 
 * Existing setup
-  * [AVM Fritz!Box 4040](https://avm.de/produkte/fritzbox/fritzbox-4040/) as router
-  * [Zyxel VMG1312-B30A](https://www.zyxel.com/de/de/products/dsl-cpe/wireless-n-vdsl2-4-port-gateway-with-usb-vmg1312-b30a) as external modem (VDSL2 and also taking care of VLAN 07 tagging)
-  * Network: `10.0.0.0/16`
-  * DHCP
-    * Static leases (and IP-addresses) for well-known hosts
-    * Dynamic IP-addresses for guests (range: `10.0.234.0/24`)
+ ** https://avm.de/produkte/fritzbox/fritzbox-4040/[AVM Fritz!Box 4040] as router
+ ** https://www.zyxel.com/de/de/products/dsl-cpe/wireless-n-vdsl2-4-port-gateway-with-usb-vmg1312-b30a[Zyxel VMG1312-B30A] as external modem (VDSL2 and also taking care of VLAN 07 tagging)
+ ** Network: `10.0.0.0/16`
+ ** DHCP
+  *** Static leases (and IP-addresses) for well-known hosts
+  *** Dynamic IP-addresses for guests (range: `10.0.234.0/24`)
+* New router: https://mikrotik.com/product/rb5009ug_s_in[RB5009UG+S+IN]
+ ** will reuse the existing modem until fiber gets installed
+ ** when fiber is available, the SFP port will carry the GPON SFP module
+  *** Telekom sells the https://geschaeftskunden.telekom.de/internet-dsl/produkt/digitalisierungsbox-glasfasermodem-kaufen[Digitalisierungsbox Glasfasermodem] which is a https://hack-gpon.github.io/ont-zyxel-pmg3000-d20b/[Zyxel PMG3000-D20B].
+This modem has a SC/APC socket, the wall box has a LC/APC socket. +
+(Some tutorials say one needs a `ONT-Anschlusskennung`, for me using the https://www.telekom.de/hilfe/festnetz-internet-tv/anschluss-verfuegbarkeit/anschlussvarianten/glasfaseranschluss/modem-id[modem ID] during configuration was just fine. ONT might be required for business accounts though.)
+  *** Corning has https://www.amazon.de/dp/B09GRK3QG6[fiber cables in various lengths] for a moderate price (but they have only 2 mm white cables, the 3 mm ones are yellow).
 
-* New router: [RB5009UG+S+IN](https://mikrotik.com/product/rb5009ug_s_in)
-  * will reuse the existing modem until fiber gets installed
-  * when fiber is available, the SFP port will carry the GPON SFP module
-    * Telekom sells the [Digitalisierungsbox Glasfasermodem](https://geschaeftskunden.telekom.de/internet-dsl/produkt/digitalisierungsbox-glasfasermodem-kaufen) which is a [Zyxel PMG3000-D20B](https://hack-gpon.github.io/ont-zyxel-pmg3000-d20b/).
-    This modem has a SC/APC socket, the wall box has a LC/APC socket. \
-    (Some tutorials say one needs a `ONT-Anschlusskennung`, for me using the [modem ID](https://www.telekom.de/hilfe/festnetz-internet-tv/anschluss-verfuegbarkeit/anschlussvarianten/glasfaseranschluss/modem-id) during configuration was just fine. ONT might be required for business accounts though.)
-    * Corning has [fiber cables in various lengths](https://www.amazon.de/dp/B09GRK3QG6) for a moderate price (but they have only 2 mm white cables, the 3 mm ones are yellow).
-
-**UPDATE**: Usage of the SFP proved to be flaky, issues seem to caused by the MikroTik side:
+*UPDATE*: Usage of the SFP proved to be flaky, issues seem to be caused by the MikroTik side:
 
 * erroneous temperature readings of the SFP by MikroTik leading to the SFP being shut down
 * auto-negotiation not working (worked around by setting the `sfp-sfpplus1` interface to `auto-negotiation=no speed=1Gbps`)
-* finally the [RB5009UG+S+IN](https://mikrotik.com/product/rb5009ug_s_in) not recognizing the SFP after about 9 months (a [hEX S](https://mikrotik.com/product/hex_s) had no issues with the SFP module and the fiber connection seemed to continue to work...)
+* finally the https://mikrotik.com/product/rb5009ug_s_in[RB5009UG+S+IN] not recognizing the SFP after about 9 months (a https://mikrotik.com/product/hex_s[hEX S] had no issues with the SFP module and the fiber connection seemed to continue to work...)
 
-The SFP has been replaced by the [Glasfaser Modem 2](https://www.telekom.de/zuhause/geraete-und-zubehoer/wlan-und-router/glasfaser-modem-2) which seems to be more of a media converter than an actual modem.
+The SFP has been replaced by the https://www.telekom.de/zuhause/geraete-und-zubehoer/wlan-und-router/glasfaser-modem-2[Glasfaser Modem 2] which seems to be more of a media converter than an actual modem.
 Works fine for now but now the setup is back to 2 devices.
-As the included fibre cable is quite short, it got replaced by [a longer fiber cable from InLine](https://www.amazon.de/dp/B08XMN6JPL).
+As the included fibre cable is quite short, it got replaced by https://www.amazon.de/dp/B08XMN6JPL[a longer fiber cable from InLine].
 
-## PPPoE credentials
+== PPPoE credentials
 
 The regular Telekom-PPPoE user consists out of multiple parts derived from the contract data.
 
@@ -52,81 +51,131 @@ The full PPPoE username would be:
 
 with
 
-* **A** => Anschlusskennung
-* **T** => T-Online-Nummer
-* **M** => Mitbenutzernummer
+* *A* \=> Anschlusskennung
+* *T* \=> T-Online-Nummer
+* *M* \=> Mitbenutzernummer
 
 (If the `AAAAAAAAAAAATTTTTTTTTTT` part is 24 characters long, the `#` character before the MMMM part can be omitted.)
 
-## Default configuration of RB5009UG+S+IN
+== Default configuration of RB5009UG+S+IN
 
-RouterOS (v7.6) comes with this [default configuration](scripts/mikrotik/default-configuration/script.rsc).
+RouterOS (v7.6) comes with this link:scripts/mikrotik/default-configuration/script.rsc[default configuration].
 
 The default configuration script can be queried with this command
 
-```RouterOS
+[,RouterOS]
+----
 /system/default-configuration/script print
-```
+----
 
 or to show all default configuration scripts:
 
-```RouterOS
+[,RouterOS]
+----
 /system/default-configuration print
-```
+----
 
-### References
+=== References
 
 * MikroTik
-  * [Default configurations](https://help.mikrotik.com/docs/display/ROS/Default+configurations)
+ ** https://help.mikrotik.com/docs/display/ROS/Default+configurations[Default configurations]
 
-## Setting up the basic network and connectivity
+== Setting up the basic network and connectivity
 
-### Remove WAN interfaces from bridge
+=== Remove WAN interfaces from bridge
 
 The SFP interface might become the new WAN device when using fiber.
 As it is not used for the internal network it can be already removed.
 
-```RouterOS
+[,RouterOS]
+----
 /interface bridge port
   remove [find interface=sfp-sfpplus1]
-```
+----
 
-### Setup using "Quick Set"
+=== Setup using "Quick Set"
 
 "Quick Set" helps with the initial setup, especially when the network address shall be changed.
 
-|Setting                    |Value                      |Comment    |
-|---------------------------|---------------------------|-----------|
-|                           |                           |           |
-|**Mode**                   |[x] Router                 |           |
-|                           |                           |           |
-|**Port**                   |`eth1`                     |           |
-|**Address Acquisition**    |`PPPoE`                    |           |
-|**PPPoE User**             |`...@t-online.de`          |           |
-|**PPPoE Password**         |`12345678`                 |           |
-|**PPPoE Service Name**     |`Telekom`                  |(optional) |
-|                           |                           |           |
-|**IP Address**             |`10.0.0.1`                 |           |
-|**Netmask**                |`255.255.0.0/16`           |           |
-|**Bridge All LAN Ports**   | [ ]                       |           |
-|**DHCP Server**            | [x]                       |           |
-|**DHCP Server Range**      |`10.0.234.1-10.0.234.254`  |           |
-|**NAT**                    | [x]                       |           |
+|===
+| Setting | Value | Comment
 
-#### References
+|
+|
+|
+
+| *Mode*
+| [x] Router
+|
+
+|
+|
+|
+
+| *Port*
+| `eth1`
+|
+
+| *Address Acquisition*
+| `PPPoE`
+|
+
+| *PPPoE User*
+| `+...@t-online.de+`
+|
+
+| *PPPoE Password*
+| `12345678`
+|
+
+| *PPPoE Service Name*
+| `Telekom`
+| (optional)
+
+|
+|
+|
+
+| *IP Address*
+| `10.0.0.1`
+|
+
+| *Netmask*
+| `255.255.0.0/16`
+|
+
+| *Bridge All LAN Ports*
+| [ ]
+|
+
+| *DHCP Server*
+| [x]
+|
+
+| *DHCP Server Range*
+| `10.0.234.1-10.0.234.254`
+|
+
+| *NAT*
+| [x]
+|
+|===
+
+==== References
 
 * MikroTik
-  * [Manual - Quickset](https://wiki.mikrotik.com/wiki/Manual:Quickset)
+ ** https://wiki.mikrotik.com/wiki/Manual:Quickset[Manual - Quickset]
 
-### Manual setup
+=== Manual setup
 
-#### Setup of DHCP and IP range
+==== Setup of DHCP and IP range
 
 The network is already set up with `192.168.88.1/24`. This snippet changes the respective addresses and ranges.
 
 For consistency all these commands should be executed at once:
 
-```RouterOS
+[,RouterOS]
+----
 /ip pool
   set [find name=default-dhcp] name=dhcp-LAN ranges=10.0.234.1-10.0.234.254
 
@@ -150,17 +199,17 @@ For consistency all these commands should be executed at once:
   set [find address=192.168.88.1] \
     address=10.0.0.1 \
     name=router
-```
+----
 
-##### References
+===== References
 
 * MikroTik
-  * [IP Pools](https://help.mikrotik.com/docs/display/ROS/IP+Pools)
-  * [IP Addressing - Adding IP Address](https://help.mikrotik.com/docs/display/ROS/IP+Addressing#IPAddressing-AddingIPAddress)
-  * [DHCP-Network](https://help.mikrotik.com/docs/display/ROS/DHCP#DHCP-Network)
-  * [DNS Static](https://help.mikrotik.com/docs/display/ROS/DNS#DNS-DNSStatic)
+ ** https://help.mikrotik.com/docs/display/ROS/IP+Pools[IP Pools]
+ ** https://help.mikrotik.com/docs/display/ROS/IP+Addressing#IPAddressing-AddingIPAddress[IP Addressing - Adding IP Address]
+ ** https://help.mikrotik.com/docs/display/ROS/DHCP#DHCP-Network[DHCP-Network]
+ ** https://help.mikrotik.com/docs/display/ROS/DNS#DNS-DNSStatic[DNS Static]
 
-#### Create VLAN tagged interface for PPPoE
+==== Create VLAN tagged interface for PPPoE
 
 Set up a VLAN interface for the PPPoE client.
 This is only required when the modem doesn't take care of tagging.
@@ -170,17 +219,18 @@ Depending on the modem, `interface` can be any of:
 * `ether1` (external modem without VLAN tagging)
 * `sfp-sfpplus1` (SFP modem without VLAN tagging)
 
-```RouterOS
+[,RouterOS]
+----
 /interface vlan
   add interface=ether1 vlan-id=7 name=vlan07-telekom comment=Telekom
-```
+----
 
-##### References
+===== References
 
 * MikroTik
-  * [VLAN - Layer3 VLAN examples](https://help.mikrotik.com/docs/display/ROS/VLAN#VLAN-Layer3VLANexamples)
+ ** https://help.mikrotik.com/docs/display/ROS/VLAN#VLAN-Layer3VLANexamples[VLAN - Layer3 VLAN examples]
 
-#### Configure PPPoE client
+==== Configure PPPoE client
 
 Depending on the modem configuration `interface` can be any of:
 
@@ -190,7 +240,8 @@ Depending on the modem configuration `interface` can be any of:
 
 As default the PPPoE client is disabled to prevent it from starting before configuration is complete.
 
-```RouterOS
+[,RouterOS]
+----
 /interface pppoe-client
   add interface=vlan07-telekom add-default-route=yes \
     use-peer-dns=yes \
@@ -199,193 +250,207 @@ As default the PPPoE client is disabled to prevent it from starting before confi
     password="12345678" \
     disabled=yes \
     comment=Telekom
-```
+----
 
-##### References
+===== References
 
 * MikroTik
-  * [First Time Configuration - PPPoE Connection](https://help.mikrotik.com/docs/display/ROS/First+Time+Configuration#FirstTimeConfiguration-PPPoEConnection)
+ ** https://help.mikrotik.com/docs/display/ROS/First+Time+Configuration#FirstTimeConfiguration-PPPoEConnection[First Time Configuration - PPPoE Connection]
 
-#### Add PPPoE interface to WAN interface list for firewall
+==== Add PPPoE interface to WAN interface list for firewall
 
 In addition to specific interfaces the firewall configuration can use more generic interface lists.
 The PPPoE client's interface must be added to the `WAN` interface list to make it work.
 
-```RouterOS
+[,RouterOS]
+----
 /interface list member
   add list=WAN interface=pppoe-out1 comment=Telekom
-```
+----
 
-#### Activate PPPoE client
+==== Activate PPPoE client
 
 Now that Internet settings are all configured the PPPoE can be activated.
 
-```RouterOS
+[,RouterOS]
+----
 /interface pppoe-client
   set [find name=pppoe-out1] disabled=no
-```
+----
 
-## Extended network configuration
+== Extended network configuration
 
-### Multicast / IPTV configuration
+=== Multicast / IPTV configuration
 
-#### Set up IGMP proxy
+==== Set up IGMP proxy
 
-```RouterOS
+[,RouterOS]
+----
 /routing igmp-proxy interface
   add interface=pppoe-out1 alternative-subnets=87.141.215.251/32 upstream=yes comment=MagentaTV
   add interface=bridge comment=MagentaTV
-```
+----
 
-##### References
+===== References
 
 * MikroTik
-  * [IGMP Proxy - Examples](https://help.mikrotik.com/docs/display/ROS/IGMP+Proxy#IGMPProxy-Examples)
+ ** https://help.mikrotik.com/docs/display/ROS/IGMP+Proxy#IGMPProxy-Examples[IGMP Proxy - Examples]
 
-#### Add IP range of multicast networks
+==== Add IP range of multicast networks
 
-```RouterOS
+[,RouterOS]
+----
 /ip firewall address-list
   add address=224.0.0.0/4   list=Multicast comment=MagentaTV
   add address=232.0.0.0/16  list=Multicast comment=MagentaTV
   add address=239.35.0.0/16 list=Multicast comment=MagentaTV
-```
+----
 
-#### Add firewall rules to allow traffic from multicast networks
+==== Add firewall rules to allow traffic from multicast networks
 
-```RouterOS
+[,RouterOS]
+----
 /ip firewall filter
   add chain=input   action=accept dst-address-list=Multicast place-before=2 comment=MagentaTV
   add chain=forward action=accept dst-address-list=Multicast place-before=2 comment=MagentaTV
-```
+----
 
-#### Activate IGMP snooping on bridge
+==== Activate IGMP snooping on bridge
 
-```RouterOS
+[,RouterOS]
+----
 /interface bridge
   set [find where name=bridge and comment=defConf] \
     igmp-snooping=yes igmp-version=3 mld-version=2 multicast-router=permanent comment=MagentaTV
-```
+----
 
-##### References
+===== References
 
 * MikroTik
-  * [Basic IGMP snooping configuration](https://help.mikrotik.com/docs/pages/viewpage.action?pageId=59277403#BridgeIGMP/MLDsnooping-BasicIGMPsnoopingconfiguration)
+ ** https://help.mikrotik.com/docs/pages/viewpage.action?pageId=59277403#BridgeIGMP/MLDsnooping-BasicIGMPsnoopingconfiguration[Basic IGMP snooping configuration]
 
-#### Sources
+==== Sources
 
-* [Telekom Magenta TV/Entertain mit Mikrotik Router und VLANs](https://simon.taddiken.net/magenta-mikrotik/)
-* [Mikrotik - Telekom Magenta TV - IPTV - Tutorial](https://administrator.de/tutorial/mikrotik-telekom-magenta-tv-iptv-tutorial-667348.html)
+* https://simon.taddiken.net/magenta-mikrotik/[Telekom Magenta TV/Entertain mit Mikrotik Router und VLANs]
+* https://administrator.de/tutorial/mikrotik-telekom-magenta-tv-iptv-tutorial-667348.html[Mikrotik - Telekom Magenta TV - IPTV - Tutorial]
 
-### Extended DHCP configuration
+=== Extended DHCP configuration
 
-#### Add static DHCP leases
+==== Add static DHCP leases
 
-```RouterOS
+[,RouterOS]
+----
 /ip dhcp-server lease
   add client-id=1:22:33:44:55:66:77 mac-address=22:33:44:55:66:77 address=10.0.25.2 comment="Notebook-1"
   add client-id=1:12:23:34:45:56:67 mac-address=12:23:34:45:56:67 address=10.0.25.11 comment="Android-5"
-```
+----
 
-Note:\
+Note: +
 The `client-id` is required, otherwise the router seems to not persist the entry.
 The `client-id` was calculated by using the prefix `1:` and the MAC of the device.
 
-##### References
+===== References
 
 * MikroTik
-  * [DHCP-Server / Leases](https://wiki.mikrotik.com/wiki/Manual:IP/DHCP_Server#Leases)
-  * [DHCP / Leases](https://help.mikrotik.com/docs/display/ROS/DHCP#DHCP-Leases)
+ ** https://wiki.mikrotik.com/wiki/Manual:IP/DHCP_Server#Leases[DHCP-Server / Leases]
+ ** https://help.mikrotik.com/docs/display/ROS/DHCP#DHCP-Leases[DHCP / Leases]
 
-#### Add static DNS record for known hosts
+==== Add static DNS record for known hosts
 
-```RouterOS
+[,RouterOS]
+----
 /ip dns static
   add name="Notebook-1" address=10.0.25.2
   add name="Android-5" address=10.0.25.11
-```
+----
 
 Or with the `lan` domain configured:
 
-```RouterOS
+[,RouterOS]
+----
 /ip dns static
   add name="Notebook-1.lan" address=10.0.25.2
   add name="Android-5.lan" address=10.0.25.11
-```
+----
 
-##### References
+===== References
 
 * MikroTik
-  * [Setting static DNS record for each DHCP lease](https://wiki.mikrotik.com/wiki/Setting_static_DNS_record_for_each_DHCP_lease)
+ ** https://wiki.mikrotik.com/wiki/Setting_static_DNS_record_for_each_DHCP_lease[Setting static DNS record for each DHCP lease]
 
-#### Using existing data from Fritz!Box
+==== Using existing data from Fritz!Box
 
 Fritz!OS (tested with v7.29) provides an API to query data from the router.
 
 This data can be reused to configure the MikroTik router.
 
-The [Fritz2Tik](Fritz2Tik.md) documentation describes the details and steps needed to transform the data accordingly.
+The xref:Fritz2Tik.adoc[Fritz2Tik] documentation describes the details and steps needed to transform the data accordingly.
 
-#### Add default search domain (list)
+==== Add default search domain (list)
 
 DHCP option `119` can be used to provide a default search domain (list) to clients.
 
-The domain names used are based on DNS labels ([RFC 1035 - 4.1.4](https://www.ietf.org/rfc/rfc1035.html#section-4.1.4)) which is not very convenient if one has to derive them on its own...
-But there is a nice online tool helping with that: [DHCP Option 119 Encoder](https://jjjordan.github.io/dhcp119/)
+The domain names used are based on DNS labels (https://www.ietf.org/rfc/rfc1035.html#section-4.1.4[RFC 1035 - 4.1.4]) which is not very convenient if one has to derive them on its own...
+But there is a nice online tool helping with that: https://jjjordan.github.io/dhcp119/[DHCP Option 119 Encoder]
 
 Search domain of: `lan`
 
-```RouterOS
+[,RouterOS]
+----
 /ip dhcp-server option
   add code=119 name=domain-search-list value="0x03'lan'0x00"
-```
+----
 
-or e.g. search domain list of: `lan;foo` (don't use `box` as it's a [potential TLD since 2016-11-11](https://newgtlds.icann.org/en/program-status/delegated-strings)):
+or e.g. search domain list of: `lan;foo` (don't use `box` as it's a https://newgtlds.icann.org/en/program-status/delegated-strings[potential TLD since 2016-11-11]):
 
-```RouterOS
+[,RouterOS]
+----
 /ip dhcp-server option
   add code=119 name=domain-search-list value="0x03'lan'0x0003'foo'0x00"
-```
+----
 
 Use the domain search option as part of an option set:
 
-```RouterOS
+[,RouterOS]
+----
 /ip dhcp-server option sets
   add name=domain-search-set options=domain-search-list
-```
+----
 
 Configure the DHCP server to use the given option set:
 
-```RouterOS
+[,RouterOS]
+----
 /ip dhcp-server
   set [find name=dhcp-LAN] dhcp-option-set=domain-search-set
-```
+----
 
-##### References
+===== References
 
 * MikroTik
-  * [DHCP Server - Options](https://wiki.mikrotik.com/wiki/Manual:IP/DHCP_Server#DHCP_Options)
-  * [DHCP Server - Option Sets](https://wiki.mikrotik.com/wiki/Manual:IP/DHCP_Server#DHCP_Option_Sets)
+ ** https://wiki.mikrotik.com/wiki/Manual:IP/DHCP_Server#DHCP_Options[DHCP Server - Options]
+ ** https://wiki.mikrotik.com/wiki/Manual:IP/DHCP_Server#DHCP_Option_Sets[DHCP Server - Option Sets]
 * IANA
-  * [DHCP Parameters](http://www.iana.org/assignments/bootp-dhcp-parameters/bootp-dhcp-parameters.xhtml)
-  * [Delegated Strings \| ICANN New gTLDs](https://newgtlds.icann.org/en/program-status/delegated-strings)
-  * [Delegation Record for .BOX](https://www.iana.org/domains/root/db/box.html)
+ ** http://www.iana.org/assignments/bootp-dhcp-parameters/bootp-dhcp-parameters.xhtml[DHCP Parameters]
+ ** https://newgtlds.icann.org/en/program-status/delegated-strings[Delegated Strings | ICANN New gTLDs]
+ ** https://www.iana.org/domains/root/db/box.html[Delegation Record for .BOX]
 * Helper
-  * [DHCP Option 119 Encoder](https://jjjordan.github.io/dhcp119/)
+ ** https://jjjordan.github.io/dhcp119/[DHCP Option 119 Encoder]
 
-### Restricting time / bandwidth
+=== Restricting time / bandwidth
 
 RouterOS supports setting up online time / bandwidth restrictions for clients.
-This functionality is called *Kid Control*.
+This functionality is called _Kid Control_.
 
-#### References
+==== References
 
 * MikroTik
-  * [Kid Control](https://help.mikrotik.com/docs/display/ROS/Kid+Control)
+ ** https://help.mikrotik.com/docs/display/ROS/Kid+Control[Kid Control]
 
-#### Creating profiles
+==== Creating profiles
 
-```RouterOS
+[,RouterOS]
+----
 /ip kid-control
   add name=Time \
     mon=0s-1h,16h-1d \
@@ -404,25 +469,27 @@ This functionality is called *Kid Control*.
     sat=0s-1h,12h-1d \
     sun=0s-1h,12h-1d \
     rate-limit=70M
-```
+----
 
-Note:\
+Note: +
 For times up to midnight one has to use:
- * on the CLI: `1d` or `24h`
- * on web UI: `1d 00:00:00`
 
-For times starting at `00:00:00` one has to use `0s` on the CLI.\
+* on the CLI: `1d` or `24h`
+* on web UI: `1d 00:00:00`
+
+For times starting at `00:00:00` one has to use `0s` on the CLI. +
 Even if the UI suggests it supports seconds (because they are shown), it does not.
 
-#### Assign devices to profiles
+==== Assign devices to profiles
 
-```RouterOS
+[,RouterOS]
+----
 /ip kid-control device
   add mac-address=12:23:34:45:56:67 name=Android-5 user=Time
   add mac-address=22:33:44:55:66:77 name=Notebook-1 user=Time-Bandwidth
-```
+----
 
-### Configuration of custom DNS server
+=== Configuration of custom DNS server
 
 For various reasons one might want to use custom server for DNS resolution instead the ones provided by the ISP. Reasons could be eg.:
 
@@ -434,29 +501,32 @@ For various reasons one might want to use custom server for DNS resolution inste
 
 A non-exhaustive list of some better known public DNS provider:
 
-* [Cloudflare DNS](https://1.1.1.1/)
-* [Google DNS](https://developers.google.com/speed/public-dns/)
-* [Quad9](https://quad9.net/)
+* https://1.1.1.1/[Cloudflare DNS]
+* https://developers.google.com/speed/public-dns/[Google DNS]
+* https://quad9.net/[Quad9]
 
 Example for setup using non-filtering Cloudflare DNS server:
 
-```RouterOS
+[,RouterOS]
+----
 /ip dns
   set allow-remote-requests=yes servers=1.1.1.1,1.0.0.1
-```
+----
 
 Configure the PPPoE client to ignore the DNS servers provided by the ISP:
 
-```RouterOS
+[,RouterOS]
+----
 /interface pppoe-client
   set [find name=pppoe-telekom] use-peer-dns=no
-```
+----
 
-#### Redirect all DNS requests to router
+==== Redirect all DNS requests to router
 
 One can even prevent users to use their own DNS settings and force them to use the router for look ups by redirecting all request to the router:
 
-```RouterOS
+[,RouterOS]
+----
 /ip firewall nat
   print
   add action=dst-nat chain=dstnat in-interface-list="LAN" \
@@ -465,103 +535,111 @@ One can even prevent users to use their own DNS settings and force them to use t
   add action=dst-nat chain=dstnat in-interface-list="LAN" \
     src-address=!10.0.0.1 to-addresses=10.0.0.1 dst-port=53 \
     protocol=tcp comment="DNS redirect (TCP)"
-```
+----
 
-#### References
+==== References
 
 * MikroTik
-  * [DNS Configuration](https://help.mikrotik.com/docs/display/ROS/DNS#DNS-DNSconfiguration)
-  * [PPPoE Client Properties](https://help.mikrotik.com/docs/display/ROS/PPPoE#PPPoE-Properties)
-  * [IP/Firewall/NAT](https://wiki.mikrotik.com/wiki/Manual:IP/Firewall/NAT)
+ ** https://help.mikrotik.com/docs/display/ROS/DNS#DNS-DNSconfiguration[DNS Configuration]
+ ** https://help.mikrotik.com/docs/display/ROS/PPPoE#PPPoE-Properties[PPPoE Client Properties]
+ ** https://wiki.mikrotik.com/wiki/Manual:IP/Firewall/NAT[IP/Firewall/NAT]
 
-### Add access to modem
+=== Add access to modem
 
 The modem resides behind the router and has its own address / network.
 It's possible to access the modem with a few configuration adjustments.
 
-#### External modem
+==== External modem
 
 The modem (either VDSL or fiber) is attached to `ether1`.
 
 Add NAT rule to the firewall for the modem interface:
 
-```RouterOS
+[,RouterOS]
+----
 /ip firewall nat
   add action=masquerade chain=srcnat out-interface=ether1 \
     comment="Modem ether1"
-```
+----
 
-##### Configuration for Zyxel VMG1312-B30A
+===== Configuration for Zyxel VMG1312-B30A
 
 The modem has the address `192.168.1.1/24`.
 
 Assign `ether1` a dedicated IP in the network range of the modem to allow routing:
 
-```RouterOS
+[,RouterOS]
+----
 /ip address
   add address=192.168.1.2/24 interface=ether1 network=192.168.1.0 \
     comment="Zyxel VMG1312-B30A"
-```
+----
 
 Assign the modem a name (so that one does not have to remember its network/IP):
 
-```RouterOS
+[,RouterOS]
+----
 /ip dns static
   add address=192.168.1.1 name=modem.lan comment="Zyxel VMG1312-B30A"
-```
+----
 
-##### Configuration for Glasfaser Modem 2
+===== Configuration for Glasfaser Modem 2
 
 The modem has the address `192.168.100.1/24`.
 
 Assign `ether1` a dedicated IP in the network range of the modem to allow routing:
 
-```RouterOS
+[,RouterOS]
+----
 /ip address
   add address=192.168.100.2/24 interface=ether1 network=192.168.100.0 \
     comment="Glasfaser Modem 2"
-```
+----
 
 Assign the modem a name (so that one does not have to remember its network/IP):
 
-```RouterOS
+[,RouterOS]
+----
 /ip dns static
   add address=192.168.100.1 name=gmodem2.lan comment="Glasfaser Modem 2"
-```
+----
 
-#### Internal SFP modem
+==== Internal SFP modem
 
 The modem is attached to `sfp-sfpplus1`.
 
 Add NAT rule to the firewall for the modem interface:
 
-```RouterOS
+[,RouterOS]
+----
 /ip firewall nat
   add action=masquerade chain=srcnat out-interface=sfp-sfpplus1 \
     comment="Modem SFP+"
-```
+----
 
-##### Configuration for Digitalisierungsbox Glasfasermodem
+===== Configuration for Digitalisierungsbox Glasfasermodem
 
 The modem has the address `10.10.1.1/24`.
 
 Assign `sfp-sfpplus1` a dedicated IP in the network range of the modem to allow routing:
 
-```RouterOS
+[,RouterOS]
+----
 /ip address
   add address=10.10.1.2/24 interface=sfp-sfpplus1 network=10.10.1.0 \
     comment="Digitalisierungsbox Glasfasermodem"
-```
+----
 
 Assign the modem a name (so that one does not have to remember its network/IP):
 
-```RouterOS
+[,RouterOS]
+----
 /ip dns static
   add address=sfp-sfpplus1 name=fiber-modem.lan \
     comment="Digitalisierungsbox Glasfasermodem"
-```
+----
 
-## Activate Internet detection
+== Activate Internet detection
 
 Applying this setting will make RouterOS try to detect the "Internet".
 
@@ -569,7 +647,8 @@ It's activated mostly to allow the mobile app to show some nice graphs about ban
 
 As this feature might mix up interface lists (and by that firewall settings), it is safer to create interface lists solely for the purpose of Internet detection.
 
-```RouterOS
+[,RouterOS]
+----
 /interface list
   add name=di-where-detect
   add name=di-detected-lan
@@ -584,199 +663,217 @@ As this feature might mix up interface lists (and by that firewall settings), it
 
 /interface list member
   add interface=pppoe-out1 list=di-where-detect
-```
+----
 
-### References
+=== References
 
 * MikroTik
-  * [Detect Internet](https://help.mikrotik.com/docs/display/ROS/Detect+Internet)
-  * [What is Detect Internet for?](https://forum.mikrotik.com/viewtopic.php?t=187814#p946990)
+ ** https://help.mikrotik.com/docs/display/ROS/Detect+Internet[Detect Internet]
+ ** https://forum.mikrotik.com/viewtopic.php?t=187814#p946990[What is Detect Internet for?]
 
-## Configure NTP client
+== Configure NTP client
 
-```RouterOS
+[,RouterOS]
+----
 /system ntp client
   set enabled=yes
 /system ntp client servers
   add address=europe.pool.ntp.org
-```
+----
 
-### References
+=== References
 
 * MikroTik
-  * [RouterOS version 7 NTP Client properties](https://help.mikrotik.com/docs/display/ROS/NTP#NTP-NTPClientproperties:)
+ ** https://help.mikrotik.com/docs/display/ROS/NTP#NTP-NTPClientproperties:[RouterOS version 7 NTP Client properties]
 
-## Configure timezone (optional)
+== Configure timezone (optional)
 
 Per default auto-detection of the time zone is enabled. One can still specify the timezone manually.
 
-```RouterOS
+[,RouterOS]
+----
 /system clock
   set time-zone-name=Europe/Berlin
-```
+----
 
-### References
+=== References
 
 * MikroTik
-  * [Clock](https://help.mikrotik.com/docs/display/ROS/Clock)
+ ** https://help.mikrotik.com/docs/display/ROS/Clock[Clock]
 
-## Services
+== Services
 
-### Create & add SSL certificate for `web-ssl`
+=== Create & add SSL certificate for `web-ssl`
 
 To start `web-ssl` one needs to create a certificate which can't be done solely on the MikroTik itself.
 
-#### Sources
+==== Sources
 
-* [Create a Self-Signed Certificate on MikroTik](https://cyberjunky.nl/create-self-sign-cert-for-mikrotik/)
+* https://cyberjunky.nl/create-self-sign-cert-for-mikrotik/[Create a Self-Signed Certificate on MikroTik]
 
-#### Step 1 - Create certificate request - MikroTik
+==== Step 1 - Create certificate request - MikroTik
 
-```RouterOS
+[,RouterOS]
+----
 /certificate
   add name=SSL common-name=SSL key-size=2048
   create-certificate-request template=SSL key-passphrase=<passphrase of your choice>
-```
+----
 
-#### Step 2 - Create self-signed certificate - System with OpenSSL installed
+==== Step 2 - Create self-signed certificate - System with OpenSSL installed
 
 Copy the files to a system with `OpenSSL`.
 
-```shell
+[,shell]
+----
 openssl rsa -in certificate-request_key.pem -text > certificate-request2.pem
 openssl x509 -req -days 9999 -in certificate-request.pem -signkey certificate-request2.pem -out mikrotik_ssl.crt
-```
+----
 
 Upload the created files to the MikroTik.
 
-#### Step 3 - Configure certificate - MikroTik
+==== Step 3 - Configure certificate - MikroTik
 
 Configure the imported file as certificate.
 
-```RouterOS
+[,RouterOS]
+----
 /certificate import file-name=mikrotik_ssl.crt
-```
+----
 
 Output:
 
-```RouterOS
+[,RouterOS]
+----
 passphrase: ******
      certificates-imported: 1
      private-keys-imported: 0
             files-imported: 0
        decryption-failures: 0
   keys-with-no-certificate: 0
-```
+----
 
-#### Step 4 - Configure key - MikroTik
+==== Step 4 - Configure key - MikroTik
 
 Configure the imported key file.
 
-```RouterOS
+[,RouterOS]
+----
 /certificate import file-name=certificate-request2.pem
-```
+----
 
 Output:
 
-```RouterOS
+[,RouterOS]
+----
 passphrase: *****
      certificates-imported: 0
      private-keys-imported: 1
             files-imported: 1
        decryption-failures: 0
   keys-with-no-certificate: 0
-```
+----
 
-#### Step 5 - Validate certificate - MikroTik
+==== Step 5 - Validate certificate - MikroTik
 
-```RouterOS
+[,RouterOS]
+----
 /certificate print
-```
+----
 
 Output:
 
-```RouterOS
+[,RouterOS]
+----
 Flags: K - PRIVATE-KEY; T - TRUSTED
 Columns: NAME, COMMON-NAME, FINGERPRINT
 #    NAME                COMMON-NAME  FINGERPRINT
 0    SSL                 SSL          abc...
 1 KT mikrotik_ssl.crt_0  SSL          efg...
-```
+----
 
-#### Step 6 - Configure and enable `web-ssl` - MikroTik
+==== Step 6 - Configure and enable `web-ssl` - MikroTik
 
 Configure `web-ssl` to use the certificate and enable the service:
 
-```RouterOS
+[,RouterOS]
+----
 /ip service
   set [find name=www-ssl] certificate=mikrotik_ssl.crt_0 disabled=no
-```
+----
 
-#### References
+==== References
 
 * MikroTik
-  * [Certificates](https://help.mikrotik.com/docs/display/ROS/Certificates)
+ ** https://help.mikrotik.com/docs/display/ROS/Certificates[Certificates]
 
-### Disable unused services
+=== Disable unused services
 
 Keep `ssh`, `www` and `www-ssl` but disable service not used.
 
-```RouterOS
+[,RouterOS]
+----
 /ip service
   set api     disabled=yes
   set api-ssl disabled=yes
   set ftp     disabled=yes
   set telnet  disabled=yes
-```
+----
 
-## DNS Caveats
+== DNS Caveats
 
 When switching from VDSL to fiber it might seem that the connection does not work properly.
 The reason could be actually local DNS caching, here `www.heise.de` is resolved to `ip.block.dt.de`:
 
-```sh
+[,sh]
+----
 $ ping www.heise.de
 PING ip.block.dt.de (46.29.100.42): 56 data bytes
 64 bytes from 46.29.100.42: icmp_seq=0 ttl=52 time=29.764 ms
 64 bytes from 46.29.100.42: icmp_seq=1 ttl=52 time=29.047 ms
 64 bytes from 46.29.100.42: icmp_seq=2 ttl=52 time=29.401 ms
 ...
-```
+----
 
 One can either reboot or flush the DNS cache:
 
-### Flushing MikroTik DNS cache
+=== Flushing MikroTik DNS cache
 
-```RouterOS
+[,RouterOS]
+----
 /ip dns cache flush
-```
+----
 
-#### References
+==== References
 
 * MikroTik
-  * [DNS Cache](https://help.mikrotik.com/docs/display/ROS/DNS#DNS-DNSCache)
+ ** https://help.mikrotik.com/docs/display/ROS/DNS#DNS-DNSCache[DNS Cache]
 
-### Flushing Linux DNS cache
+=== Flushing Linux DNS cache
 
-```bash
+[,bash]
+----
 sudo systemd-resolve --flush-caches
 sudo resolvectl flush-caches
-```
+----
 
 or when DNS resolution is using `dnsmasq`
 
-```bash
+[,bash]
+----
 sudo killall -HUP dnsmasq
-```
+----
 
-### Flushing MacOS DNS cache
+=== Flushing MacOS DNS cache
 
-```zsh
+[,zsh]
+----
 sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
-```
+----
 
-### Flushing Windows DNS cache
+=== Flushing Windows DNS cache
 
-```batch
+[,batch]
+----
 ipconfig /flushdns
-```
+----
