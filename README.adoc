@@ -773,8 +773,7 @@ Configure the imported file as certificate.
 /certificate import file-name=mikrotik_ssl.crt
 ----
 
-Output:
-
+.Output
 [,RouterOS]
 ----
 passphrase: ******
@@ -794,8 +793,7 @@ Configure the imported key file.
 /certificate import file-name=certificate-request2.pem
 ----
 
-Output:
-
+.Output:
 [,RouterOS]
 ----
 passphrase: *****
@@ -813,8 +811,7 @@ passphrase: *****
 /certificate print
 ----
 
-Output:
-
+.Output:
 [,RouterOS]
 ----
 Flags: K - PRIVATE-KEY; T - TRUSTED
