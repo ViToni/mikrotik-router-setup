@@ -32,25 +32,25 @@ The list of properties needed for the purpose of data migration is:
 |===
 | Variable | Description
 
-| `mac`
+a| `mac`
 | MAC address of device
 
-| `ip`
+a| `ip`
 | Current / assigned IP address
 
-| `name`
+a| `name`
 | Name of device (can bes user given)
 
-| `dhcp`
+a| `dhcp`
 | Does the network device use DHCP at all? (Static IP configured on the device itself).
 
-| `static_dhcp`
+a| `static_dhcp`
 | Is DHCP configured for this device to always have the same address?
 
-| `active`
+a| `active`
 |
 
-| `online`
+a| `online`
 |
 |===
 
