@@ -125,23 +125,23 @@ As it is not used for the internal network it can be already removed.
 |
 
 | *Port*
-| `eth1`
+a| `eth1`
 |
 
 | *Address Acquisition*
-| `PPPoE`
+a| `PPPoE`
 |
 
 | *PPPoE User*
-| `+...@t-online.de+`
+a| `+...@t-online.de+`
 |
 
 | *PPPoE Password*
-| `12345678`
+a| `12345678`
 |
 
 | *PPPoE Service Name*
-| `Telekom`
+a| `Telekom`
 | (optional)
 
 |
@@ -149,11 +149,11 @@ As it is not used for the internal network it can be already removed.
 |
 
 | *IP Address*
-| `10.0.0.1`
+a| `10.0.0.1`
 |
 
 | *Netmask*
-| `255.255.0.0/16`
+a| `255.255.0.0/16`
 |
 
 | *Bridge All LAN Ports*
@@ -165,7 +165,7 @@ As it is not used for the internal network it can be already removed.
 |
 
 | *DHCP Server Range*
-| `10.0.234.1-10.0.234.254`
+a| `10.0.234.1-10.0.234.254`
 |
 
 | *NAT*
