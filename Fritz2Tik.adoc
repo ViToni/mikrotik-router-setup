@@ -1,4 +1,15 @@
 = Migrating existing data from Fritz!Box
+Victor Toni <https://github.com/vitoni>
+// Settings:
+:toc: preamble
+:!toc-title:
+:toclevels: 5
+ifndef::env-github[:icons: font]
+ifdef::env-github[]
+:status:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+endif::[]
 
 Documentation of steps to export data from a Fritz!Box and mangle it into a format for import into MikroTik routers.
 
@@ -117,6 +128,7 @@ DHCP leases can be configured such as
   add client-id=1:12:23:34:45:56:67 mac-address=12:23:34:45:56:67 address=10.0.25.11 comment="Android-5"
 ----
 
+[discrete]
 ===== References
 
 * MikroTik
@@ -156,6 +168,7 @@ Output:
 {"online":"0","name":"Android-3","active":"0","dhcp":"1","mac":"01:23:45:67:89:AB","static_dhcp":"0","ip":"10.0.234.1"}
 ----
 
+[discrete]
 ====== References
 
 * https://github.com/stedolan/jq/issues/708#issuecomment-75394871
@@ -243,6 +256,7 @@ Output:
   add name="Android-5" address=10.0.25.11
 ----
 
+[discrete]
 ===== References
 
 * MikroTik
