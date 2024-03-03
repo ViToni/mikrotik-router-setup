@@ -70,7 +70,7 @@ with
 
 == Default configuration of RB5009UG+S+IN
 
-RouterOS (v7.6) comes with this link:scripts/mikrotik/default-configuration/script.rsc[default configuration].
+RouterOS (v7.14) comes with this link:scripts/mikrotik/default-configuration/script.rsc[default configuration].
 
 The default configuration script can be queried with this command
 
