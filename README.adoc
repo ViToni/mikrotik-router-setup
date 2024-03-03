@@ -572,6 +572,175 @@ One can even prevent users to use their own DNS settings and force them to use t
  ** https://help.mikrotik.com/docs/display/ROS/PPPoE#PPPoE-Properties[PPPoE Client Properties]
  ** https://wiki.mikrotik.com/wiki/Manual:IP/Firewall/NAT[IP/Firewall/NAT]
 
+=== Setup DynDNS (DDNS)
+
+RouterOS has a builtin DDNS client using its own service but allows also custom scripts to be used
+
+==== Builtin DDNS
+
+The builtin client is easy to use but does not allow custom names.
+Setup is easy but the name is based on the serial number of the router, so the DNS name will definitely change in case of a replacement.
+
+.https://wiki.mikrotik.com/wiki/Manual:IP/Cloud#Properties[Cloud - DDNS Properties: dns-name]
+[,txt]
+----
+Name consists of 12 character serial number appended by .sn.mynetname.net.
+----
+
+Activate builtin DDNS client:
+
+[,RouterOS]
+----
+/ip cloud
+  set ddns-enabled=yes
+----
+
+[discrete]
+===== References
+
+* MikroTik
+ ** https://wiki.mikrotik.com/wiki/Manual:IP/Cloud#DDNS[Cloud - DDNS]
+ ** https://wiki.mikrotik.com/wiki/Manual:IP/Cloud#Properties[Cloud - DDNS Properties]
+
+==== Custom DDNS scripts
+
+Another option is to use a custom script with one of the many available DDNS provider.
+
+===== Free DDNS provider
+
+Having checked some of the free DDNS provider, these are my favorites:
+
+* https://freedns.afraid.org/[FreeDNS] +
+While most services require username / password AND the new IP address to perform the update FreeDNS has a https://freedns.afraid.org/dynamic/v2/tips/[nice feature], where one just performs a HTTP `GET` on a URL such as https://sync.afraid.org/u/RANDOM_TOKEN/ to update the related subdomain. +
+FreeDNS detects the IP by it self. Really simple!
+* https://www.duckdns.org/[Duck DNS] +
+This DDNS has a https://www.duckdns.org/install.jsp?tab=fritzbox[feature] very similar
+to FreeDNS. Just performing a HTTP `GET` on http://www.duckdns.org/update?domains=YOUR_SUBDOMAIN&token=YOUR_TOKEN&ip= triggers the update. +
+If the value for `ip` is omitted, DuckDNS detects the IP itself and by that makes the calling script quite simple.
+
+===== The custom script
+
+When one installs a script on the router, one has to assign a name to the script.
+For the PPP connection this script can be configured to be called `on-up` (when the connection has been established).
+
+When the PPP connection is established, the link:scripts/mikrotik/DDNS.rsc[custom script] gets called and does a few things:
+
+* It uses the name of the script as _service name_ for logging purposes.
+* Before it does any updates, it tries to validate the connection is really working by pinging a remote party.
+* If the connection has been validated, the sync URL is called.
+
+====== Installing the script
+
+The link:scripts/mikrotik/DDNS.rsc[script] can be either created via the the WebFig (`System` / `Scripts` / `Add New`).
+
+.Example for _FreeDNS_
+|===
+| Setting | Value
+
+| Name
+a| `FreeDNS`
+
+| Don't Require Permissions
+| [x]
+
+| Policy
+| [x] read +
+  [x] test
+
+| Script
+| content of link:scripts/mikrotik/DDNS.rsc[DDNS.rsc]
+
+|===
+
+or created via shell:
+
+[,RouterOS]
+----
+/system script
+  add dont-require-permissions=no policy=read,test \
+    name=FreeDNS source="#!rsc\
+    \n#\
+    \n# Requires RouterOS\
+    \n#\
+    \n# MikroTik script to update the DNS entry when Internet connection has b\
+    een\
+    \n# established via PPP.\
+    \n#\
+    \n# Assign this script in the PPP profile as \"on-up\" script and assign t\
+    he\
+    \n# profile to the PPPoE connection.\
+    \n#\
+    \n# Permissions required:\
+    \n#   - read\
+    \n#   - test (to execute ping)\
+    \n#\
+    \n\
+    \n:local notSetYet \"Sync URL not set up yet\";\
+    \n\
+    \n# get name of script\
+    \n:local serviceName [:jobname];  # eg. \"FreeDNS\"\
+    \n:local syncURL;                 # eg. \"http://sync.afraid.org/u/your_to\
+    ken/\"\
+    \n\
+    \n# abort if the URL hasn't been set up by user yet\
+    \n:if ( !(\"\$syncURL\"~\"^http\")) do={\
+    \n    :log error \"\$serviceName: \$notSetYet\";\
+    \n    :error \$notSetYet;\
+    \n}\
+    \n\
+    \n{\
+    \n    :local maxDelay 10;\
+    \n    :local counter 0;\
+    \n\
+    \n    # check if Internet is up, pinging the nameserver of Cloudflare in t\
+    his case\
+    \n    :while ([:typeof ([:ping address=1.1.1.1 count=1 as-value]->\"time\"\
+    )] = \"nothing\") do={\
+    \n        :set counter (\$counter + 1);\
+    \n\
+    \n        # if max delay has been exceeded: abort\
+    \n        :if (\$counter > \$maxDelay) do={\
+    \n            :local msg \"Failed to detect Internet => no update\";\
+    \n\
+    \n            :log warning \"\$serviceName: \$msg\";\
+    \n            :error \$msg;\
+    \n        } else={\
+    \n            # bit of delay between attempts\
+    \n            :delay 500ms;\
+    \n        }\
+    \n    }\
+    \n}\
+    \n\
+    \n:do {\
+    \n    # call update endpoint and store response\
+    \n    :local result [/tool fetch url=\"\$syncURL\" as-value output=user]\
+    \n    :if (\$result->\"status\" = \"finished\") do={\
+    \n        # add a new line as sentinel in case \"data\" has none\
+    \n        :local response (\$result->\"data\" . \"\\n\") ;\
+    \n\
+    \n        # retrieve only the first line of \$response\
+    \n        :local endOfFirstLine ([:find \$response \"\\n\"]);\
+    \n        :set response ([:pick \$response 0 \$endOfFirstLine]);\
+    \n\
+    \n        :log info \"\$serviceName: \$response\";\
+    \n        :put \$response;\
+    \n    }\
+    \n} on-error={\
+    \n    :log warning \"\$serviceName: Failure while calling update endpoint\
+    \";\
+    \n}\
+    \n"
+----
+
+[IMPORTANT] Either way one has a specify a sync URL to be called within the script
+
+The script allows also manual execution (independent of the current PPP state):
+
+[,RouterOS]
+----
+/system script run FreeDNS
+----
+
 === Add access to modem
 
 The modem resides behind the router and has its own address / network.
