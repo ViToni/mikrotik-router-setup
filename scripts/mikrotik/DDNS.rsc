@@ -10,17 +10,26 @@
 #
 # Permissions required:
 #   - read
+#   - write
+#   - policy
 #   - test (to execute ping)
 #
 
-:local notSetYet "Sync URL not set up yet";
+:local notSetYet "Comment NOT set up to hold sync URL yet";
 
 # get name of script
 :local serviceName [:jobname];  # eg. "FreeDNS"
-:local syncURL;                 # eg. "http://sync.afraid.org/u/your_token/"
+
+# retrieve value of sync URL from comment of this script
+:local syncURL [/system/script { get [find name="$serviceName"] comment }];
 
 # abort if the URL hasn't been set up by user yet
-:if ( !("$syncURL"~"^http")) do={
+:if (!("$syncURL"~"^http")) do={
+    # set default value if no value has been set for comment yet
+    :if ("$syncURL" = "") do= {
+        /system/script { set [find name="$serviceName"] comment="$notSetYet" };
+    }
+
     :log error "$serviceName: $notSetYet";
     :error $notSetYet;
 }

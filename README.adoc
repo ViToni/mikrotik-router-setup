@@ -637,6 +637,9 @@ The link:scripts/mikrotik/DDNS.rsc[script] can be either created via the the Web
 |===
 | Setting | Value
 
+| Comment (used to store the sync URL)
+a| `http://sync.afraid.org/u/your_token/`
+
 | Name
 a| `FreeDNS`
 
@@ -645,6 +648,8 @@ a| `FreeDNS`
 
 | Policy
 | [x] read +
+  [x] write +
+  [x] policy +
   [x] test
 
 | Script
@@ -657,8 +662,9 @@ or created via shell:
 [,RouterOS]
 ----
 /system script
-  add dont-require-permissions=no policy=read,test \
-    name=FreeDNS source="#!rsc\
+  add dont-require-permissions=no policy=read,write,policy,test \
+    name=FreeDNS comment="http://sync.afraid.org/u/your_token/" \
+    source="#!rsc\
     \n#\
     \n# Requires RouterOS\
     \n#\
@@ -672,18 +678,28 @@ or created via shell:
     \n#\
     \n# Permissions required:\
     \n#   - read\
+    \n#   - write\
+    \n#   - policy\
     \n#   - test (to execute ping)\
     \n#\
     \n\
-    \n:local notSetYet \"Sync URL not set up yet\";\
+    \n:local notSetYet \"Comment NOT set up to hold sync URL yet\";\
     \n\
     \n# get name of script\
     \n:local serviceName [:jobname];  # eg. \"FreeDNS\"\
-    \n:local syncURL;                 # eg. \"http://sync.afraid.org/u/your_to\
-    ken/\"\
+    \n\
+    \n# retrieve value of sync URL from comment of this script\
+    \n:local syncURL [/system/script { get [find name=\"\$serviceName\"] comme\
+    nt }];\
     \n\
     \n# abort if the URL hasn't been set up by user yet\
-    \n:if ( !(\"\$syncURL\"~\"^http\")) do={\
+    \n:if (!(\"\$syncURL\"~\"^http\")) do={\
+    \n    # set default value if no value has been set for comment yet\
+    \n    :if (\"\$syncURL\" = \"\") do= {\
+    \n        /system/script { set [find name=\"\$serviceName\"] comment=\"\$n\
+    otSetYet\" };\
+    \n    }\
+    \n\
     \n    :log error \"\$serviceName: \$notSetYet\";\
     \n    :error \$notSetYet;\
     \n}\
@@ -732,7 +748,18 @@ or created via shell:
     \n"
 ----
 
-[IMPORTANT] Either way one has a specify a sync URL to be called within the script
+====== Update the sync URL
+
+If the sync URL changes, the comment filed can be updated accordingly using either WebFig or the CLI.
+
+.Update the sync URL via CLI
+[,RouterOS]
+----
+/system script
+  set [find name=FreeDNS] comment="http://sync.afraid.org/u/your_new_token/"
+----
+
+====== Executing the script manually
 
 The script allows also manual execution (independent of the current PPP state):
 
