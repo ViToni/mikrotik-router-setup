@@ -768,6 +768,70 @@ The script allows also manual execution (independent of the current PPP state):
 /system script run FreeDNS
 ----
 
+=== Port forwarding
+
+==== Loopback NAT / Hairpin NAT
+
+Loopback NAT allows access of an internal service (forwarded port) by the external IP, e.g. when using a DynDNS name and a port as an external party would do.
+RouterOS does not have rules configured out of the box to support loopback NAT, but it's easy although a bit unusual to setup.
+
+When using PPP there are basically two options:
+
+. Update the IP of the configured IP interface.
+This would require some changes on PPP on-up script...
+. Use the DynDNS and let the router do the resolution of the name dynamically.
+
+The following steps describe the last option.
+
+.Add DynDNS name as "IP" (RouterOS will dynamically resolve the name to an IP)
+[,RouterOS]
+----
+/ip firewall address-list
+  add address=your.dyndns.name.com list=WAN-IP
+----
+
+.Masquerade access from internal IPs to internal IPs
+[,RouterOS]
+----
+/ip firewall nat
+  add action=masquerade chain=srcnat comment="Hairpin NAT" \
+    dst-address=10.0.0.0/16 \
+    src-address=10.0.0.0/16 \
+    place-before=0
+----
+
+This rule has to be the first one as it has to work before any of the traffic might get rejected.
+
+==== Actual port forwarding
+
+Instead of using the WAN IP directly, we use the `WAN-IP` address list which resolves the WAN IP auto-magically.
+
+.Example allowing access to internal Minecraft server
+[,RouterOS]
+----
+/ip firewall nat
+  add action=dst-nat chain=dstnat comment="Minecraft TCP" \
+    dst-address-list=WAN-IP dst-port=1337 protocol=tcp \
+    to-addresses=10.0.0.65 to-ports=25565
+  add action=dst-nat chain=dstnat comment="Minecraft UDP" \
+    dst-address-list=WAN-IP dst-port=1337 protocol=udp \
+    to-addresses=10.0.0.65 to-ports=25565
+----
+
+The `dst-port` is the external port where the services is made publicly available whereas `to-ports` is the port where the service is available on the internal host.
+
+[discrete]
+==== References
+
+* MikroTik
+ ** https://help.mikrotik.com/docs/display/ROS/NAT#NAT-HairpinNAT[Hairpin NAT]
+ ** https://forum.mikrotik.com/viewtopic.php?t=162287[Hairpin NAT: Is there a simple solution?]
+
+[discrete]
+==== Sources
+
+* https://www.steveocee.co.uk/mikrotik/hairpin-nat/[Hairpin NAT - Steveocee]
+
 === Add access to modem
 
 The modem resides behind the router and has its own address / network.
