@@ -768,6 +768,130 @@ The script allows also manual execution (independent of the current PPP state):
 /system script run FreeDNS
 ----
 
+=== WireGuard setup
+
+WireGuard requires the configuration of a dedicated interface and a dedicated network.
+In addition, each WireGuard peer must be manually assigned an IP address.
+(A peer can be a "Road Warrior" client or a remote location to which a secure connection is to be established).
+While manually assigning IP addresses works for a site-to-site configuration or a "Road Warrior" setup with a few clients, a different setup may be required for larger deployments.
+
+[NOTE]
+====
+In this setup, port `13231` is used on the router side, but this value is arbitrary and can be replaced by another as long as it is the same in all configuration steps.
+====
+
+==== Set up WireGuard - on MikroTik
+
+.Create WireGuard interface
+[,RouterOS]
+----
+/interface wireguard
+  add listen-port=13231 mtu=1420 name=wireguard1 comment="Digital Home"
+----
+
+(The created interface will automatically get a computed, random public key).
+
+.Configure IP address / network for WireGuard interface
+[,RouterOS]
+----
+/ip address
+  add address=172.17.2.1/24 network=172.17.2.0 interface=wireguard1 \
+    comment="Digital Home"
+----
+
+.Allow incoming WireGuard traffic to let peers connect
+[,RouterOS]
+----
+/ip firewall filter
+  add action=accept chain=input dst-port=13231 protocol=udp \
+    comment="Digital Home - allow WireGuard"
+----
+
+.Mark WireGuard interface as LAN to allow DNS lookup, etc.
+[,RouterOS]
+----
+/interface list member
+  add interface=wireguard1 list=LAN comment="Digital Home"
+----
+
+(This could be more sophisticated if one uses more zones, etc.)
+
+==== Public key - on  MikroTik
+
+Peers need to know the public key of the router as their WireGuard peer.
+The public key can be looked up in WebFig or retrieved via console:
+
+.Get automatically created public key of WireGuard interface
+[,RouterOS]
+----
+:put [/interface wireguard get [find name=wireguard1] "public-key" ]
+----
+
+==== Configure peer - on respective device
+
+This is the configuration of peer `Digital nomad - 001`:
+
+.WireGuard tunnel
+[cols="a,a,a"]
+|===
+| Setting | Value | Comment
+
+| *Name*
+| `Digital Home`
+| Arbitrary, here the same name as on the router side for recognition.
+
+| *Address*
+| `172.17.2.2/32`
+| Address from the `wireguard1` network for this specific client.
+
+| *DNS server*
+| `172.17.2.1`
+| Address of the router in the `wireguard1` network.
+
+|===
+
+.Peer (data of the router)
+[cols="a,a,a"]
+|===
+| Setting | Value | Comment
+
+| *Public key*
+| `<public_key_of_router>`
+| Public key retrieved from router.
+
+| *Endpoint*
+| `your.dyndns.name.com:13231`
+| DNS name by which the router can be found and the `listen-port` configured for `wireguard1`.
+
+| *Allowed IPs*
+| `0.0.0.0, ::/0`
+| Whitelist of destination IPs that are to be routed through this peer (in this case all traffic) and from which traffic is allowed. +
+Using e.g. "10.0.0.0/16" would only route to/from the home network, but one could NOT access the Internet via this peer.
+
+|===
+
+After setting up the WireGuard tunnel on a specific device, the public key of this device is required to make a final configuration on the router.
+
+==== Add peer - on MikroTik
+
+.Add peer with its individual public key to router setup
+[,RouterOS]
+----
+/interface wireguard peers
+  add allowed-address=172.17.2.2/32 interface=wireguard1 \
+  public-key="public_key_of_001" \
+    comment="Digital nomad - 001"
+----
+
+[discrete]
+==== References
+
+* MikroTik
+ ** https://help.mikrotik.com/docs/display/ROS/WireGuard#WireGuard-RoadWarriorWireGuardtunnel[RoadWarrior WireGuard tunnel]
+* WireGuard
+ ** https://www.wireguard.com/#conceptual-overview[Conceptual Overview]
+ ** https://git.zx2c4.com/wireguard-tools/about/src/man/wg.8[man page of wg(8)]
+
 === Port forwarding
 
 ==== Loopback NAT / Hairpin NAT
